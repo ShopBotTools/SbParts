@@ -1,0 +1,101 @@
+;
+; Fanuc configuration file 
+;
+; History
+;
+; Who When     What
+; === ======== ========================================
+; BEM 01/04/94 Written
+; bem 21/03/00 Added DESCRIPTION and FILE_EXTENSION fields
+; JAB 15/08/00 Changed to make it run for Shopbot 
+; GOB 08/16/04 Added router on / off command 
+; GOB 08/16/04 Also added 2sec pause for router to reach speed
+; GOB 03/04/05 Revised header and footer (cleaner, neater)
+; GOB 09/20/05 1) Removed VD command
+;	       2) Added unit error lookup
+; GOB 10/04/05 1) Revised unit error to be custom cut 91
+;
+DESCRIPTION = "Shopbot inch (*.sbp)"
+;
+FILE_EXTENSION = "sbp"
+;
+UNITS = INCH
+;
+; Cariage return - line feed at end of each line
+;
+END_OF_LINE = "[13][10]"
+;
+; Block numbering 
+;
+LINE_NUM_START     = 0
+LINE_NUM_INCREMENT = 10
+LINE_NUM_MAXIMUM   = 999999
+;
+; Set up default formating for variables
+;
+; Line numbering
+FORMAT = [N|@|N|1.0]
+; Spindle Speed
+FORMAT = [S|@||1.0]
+; Feed Rate
+FORMAT = [FC|#||1.1|0.0166]
+FORMAT = [FP|#||1.1|0.0166]
+; Tool moves in x,y and z
+FORMAT = [X|@||1.3]
+FORMAT = [Y|@||1.3]
+FORMAT = [Z|@||1.3]
+; Home tool positions 
+FORMAT = [XH|@||1.3]
+FORMAT = [YH|@||1.3]
+FORMAT = [ZH|@||1.3]
+; Tool Number
+FORMAT = [T|@||1.0]
+;
+;
+; SET UP PROGRAM HEADER
+;
+START = "'----------------------------------------------------------------"
+START = "'SHOPBOT ROUTER FILE IN INCHES"
+START = "IF %(25)=1 THEN GOTO UNIT_ERROR	'check to see software is set to standard"
+START = "SA					'Set program to absolute coordinate mode"
+START = "'[COMMENT], [TOOLPATHNAME]    		'Put in toolpath name and Bit"
+START = "SO,1,1					'Turn on router"
+START = "PAUSE 2				'Give router time to reach cutting rpm"
+START = "MS,[FC],[FP]				'Set move and plunge rate"
+START = "JZ,[ZH]				'Jog Z axis to safe height"
+START = "J2,[XH],[YH]				'Return tool to home in x and y"
+START = "'----------------------------------------------------------------"
+;
+;
+; PROGRAM MOVES
+;
+FEED_RATE_Change       = "MS,[FC],[FP]'[COMMENT], [TOOLPATHNAME]"
+RAPID_RATE_MOVE        = "J3,[X],[Y],[Z]"
+FIRST_FEED_RATE_MOVE   = "M3,[X],[Y],[Z]"
+FEED_RATE_MOVE         = "M3,[X],[Y],[Z]"
+;
+;
+
+;
+;
+; SET UP PROGRAM FOOTER
+;
+END = "'----------------------------------------------------------------"
+END = "JZ,[ZH]					'Jog Z axis to safe height"
+END = "J2,[XH],[YH]				'Return tool to home in x and y"
+END = "SO,1,0					'Turn off router"
+END = "END"
+END = "'----------------------------------------------------------------"
+END = "'"
+END = "UNIT_ERROR:"				
+END = "C#,91					'Run file explaining unit error"
+END = "END"
+;
+; END OF CONFIGURATION FILE
+
+
+
+; Delcam Check Sum 8aa7c18ce6ba4f94146601ca2049f6c5
+;This file has been locked your ArtCAM product may not work if you edit this file
+
+

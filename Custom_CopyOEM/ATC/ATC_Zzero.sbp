@@ -1,0 +1,137 @@
+'ATCZZ.sbp --ATC Homing program for calculating the Z height of each tool
+
+  SA,           'Set to Absolute Mode
+  SW, 0         'Deactivate Warning duration
+  SC, 0         'Run in single step mode
+
+  SO,1,0        'Make sure spindle is not running
+
+If %(25) = 1 Then GoTo METRICUNITS
+	    &bigZclear = 24
+		&bigZplunge = -18
+		&ZUP = .5    'Distance off table to pull up
+		&zZeroMoveSpeed = .75
+		&ZforVA = -0.5
+    GoTo ZZERO_INITVARS
+METRICUNITS:
+        &bigZclear = 610
+		&bigZplunge = -460
+		&ZUP = 12    'Distance off table to pull up
+		&zZeroMoveSpeed = 19
+		&ZforVA = -12.7
+'Initialize Variables
+ZZERO_INITVARS:
+    'Initialize
+  &Ztop = 0
+  &TotalZ = 0
+TOP:
+  INPUT "Bit number to Zero:" &tool
+
+  FP, C:\SbParts\Custom\ATC\ATC.SBP
+
+  MS,,&zZeroMoveSpeed	    'Change move speed to .75
+
+  SF, 0         'Deactivate software limits
+  VN, 0        'Turn limit switch OFF
+
+  'Calibrate using Prox switch on Z
+  If &ATC = 4 Then GoSub EnterSafeDTMATC
+  ON INP(3,1) GoSub CONTACTZ1
+    MZ, &bigZclear
+
+  ON INP(3,1) GoSub CONTACTZ2
+    MZ, &bigZclear
+  If &ATC = 4 Then GoSub LeaveSafeDTMATC
+
+  VN, 0        'Turn limit switch OFF
+
+  VA,,,&ZforVA,,,,,0
+  J2, &sx , &ATC_zZeroY - %(7)
+  J2, &ATC_zZeroX - %(6), &ATC_zZeroY - %(7)       'XY Location for Z Zeroing (Enter X&Y Location of Fixed Zero plate)
+  SO,3,1
+  So,7,1
+  'Press ENTER when clip is on bit shank and ready to zero
+  PAUSE .5
+
+'Set the contact switch action ... Plate NOW SET FOR Input Switch #1
+  ON INP(1,1) GoSub CONTACT1
+    MZ, &bigZplunge 
+
+  PRINT, "Tool #" & &Tool & " height = " & &zHeight
+
+  If &Tool = 1 Then &Tool1_Z = &zHeight
+  If &Tool = 2 Then &Tool2_Z = &zHeight
+  If &Tool = 3 Then &Tool3_Z = &zHeight
+  If &Tool = 4 Then &Tool4_Z = &zHeight
+  If &Tool = 5 Then &Tool5_Z = &zHeight
+  If &Tool = 6 Then &Tool6_Z = &zHeight
+  If &Tool = 7 Then &Tool7_Z = &zHeight
+  If &Tool = 8 Then &Tool8_Z = &zHeight
+  If &Tool = 9 Then &Tool9_Z = &zHeight
+  If &Tool = 10 Then &Tool10_Z = &zHeight
+  If &Tool = 11 Then &Tool11_Z = &zHeight
+  If &Tool = 12 Then &Tool12_Z = &zHeight
+  
+  FP, &ATC_Writer
+	
+  VN, 1        'Turn limit switch ON
+  
+  &newZheight = &zHeight + &ZOffset
+  VA,,,%(3)-&newZheight,,,,,&newZheight  'Set Z height of bit relative to table surface from Table Base Coordinates
+
+ ' MX, &sx
+  SO,3,1
+  SO,7,0
+  INPUT "Do you wish to zero another cutter <Y or N>: " &gototop
+  
+  If &gototop = "Y" Then GoTo TOP 
+
+ End            'This END statement causes the program to end here without
+                '  dropping through to subroutine
+
+'================================================================Subroutines
+CONTACT1:
+'This is our subroutine for action on hitting the plate the first time
+  'We hit the plate ! 
+  ON INP(1,1)   'First set switch to nothing to prevent secondary trigger
+  PAUSE .2
+  
+  &zHeight = %(3)
+  
+  
+  JZ,%(3) + &ZUP  'Pull-up SLIGHTLY ... 
+  'Now We're Ready to Make Slow Move for Accurate Reading
+  PAUSE .2
+ Return
+
+CONTACT2:
+'This is our subroutine for action on hitting the plate the first time
+  'We hit the plate ! 
+  ON INP(1,1)   'First set switch to nothing to prevent secondary trigger
+  PAUSE .2
+ Return         'Technically this RETURNs us to the next file line after the
+                '   move that was interrupted by the switch ... eg. the MZ
+                '   and we will then encounter the END and leave the file.
+
+CONTACTZ1:
+  ON INP(5,0)
+  JZ,%(3)+&ZforVA
+ Return
+
+CONTACTZ2:
+  ON INP(5,0)
+  MZ,%(3)+&ZforVA
+  &Ztop = %(3) 
+ Return
+
+ EnterSafeDTMATC:
+ If %(1) < 2 Then goto SkipE
+ MX,%(1)-1.5
+ SkipE:
+ RETURN
+
+ LeaveSafeDTMATC:
+ If %(1) < 2 Then goto SkipL
+ MX,%(1)+1.5
+ SkipL:
+ RETURN

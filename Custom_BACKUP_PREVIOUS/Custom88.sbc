@@ -1,0 +1,44 @@
+'
+'Sets speed and scale
+'For Use with ATC
+'6/26/06
+'7/13/06 GAB - Remove Homing variables from file and move to sub in ATC_XYZ_Home.sbp
+'            - Increase speeds for tool change to decrease cycle time
+
+    'Get Speed Limits
+    IF %(25) = 0 THEN GOSUB GetInchSpeedLimits
+    IF %(25) = 1 THEN GOSUB GetMetricSpeedLimits
+
+    &start_XYmove_Speed = %(71)
+    &start_XYjog_Speed = %(76)
+    &start_Zmove_speed = %(73)
+    &start_Zjog_speed = %(78)
+
+    &XYapproach_Speed = &start_XYmove_Speed
+    &XYtempJog_Speed = &start_XYjog_Speed
+    &Zapproach_Speed = &start_Zmove_Speed
+    &ZtempJog_Speed = &start_Zjog_Speed
+
+    If &XYapproach_Speed > &TopXY_ApproachSpeed then &XYapproach_Speed = &TopXY_ApproachSpeed
+    If &XYtempJog_Speed > &TopXY_JogSpeed then &XYtempJog_Speed = &TopXY_JogSpeed
+    If &Zapproach_Speed > &TopZ_ApproachSpeed then &Zapproach_Speed = &TopZ_ApproachSpeed
+    If &ZtempJog_Speed > &TopZ_JogSpeed then &ZtempJog_Speed = &TopZ_JogSpeed
+
+    'VS, &XYapproach_Speed,&Zapproach_Speed,,,&XYtempJog_Speed,&ZtempJog_Speed         '... and assign slower speeds
+
+END
+
+    GetInchSpeedLimits:
+        &TopXY_ApproachSpeed = 3.0
+        &TopXY_JogSpeed = 30.0
+        &TopZ_ApproachSpeed = 1.0
+        &TopZ_JogSpeed = 4.0
+     RETURN
+
+    GetMetricSpeedLimits:
+        &TopXY_ApproachSpeed = 76
+        &TopXY_JogSpeed = 254
+        &TopZ_ApproachSpeed = 25
+        &TopZ_JogSpeed = 152
+     RETURN
+

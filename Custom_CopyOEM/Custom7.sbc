@@ -1,0 +1,22 @@
+'Spindle Off
+
+&modenow = %(22)
+If &modenow = 1 Then GoTo CHANGEMODE
+
+If &ATC = 0 Then GoTo IsMTC
+If &ATC = 1 Then GoTo IsATC
+If &ATC = 2 Then GoTo IsATC
+If &ATC = 3 Then GoTo IsATC
+If &ATC = 4 Then GoTo IsATC
+
+IsMTC:
+	FP,C:\SbParts\Custom\MTC\MTCoff.sbp
+	GoTo IsDone
+
+IsATC:
+	FP,C:\SbParts\Custom\ATC\ATCoff.sbp
+	GoTo IsDone
+
+CHANGEMODE:
+
+IsDone:

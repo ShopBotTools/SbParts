@@ -1,0 +1,51 @@
+'ATC RESET Zoffset v1.051506
+'    Gordon Bergfors, ShopBot Tools, Inc.
+'     All Rights Reserved, Copyright 2006
+'  
+'Determine whether we are in Preview mode or Move/Cut mode
+   '&modenow = %(22)
+   'IF &modenow = 1 THEN GOTO Changemode
+
+    C#,90         'Load the custom variables file from Custom Cut 90
+    C#,89         'Read variables from ATC_Variables and ATC_Tool_Variables
+
+'Check status of input #3
+    &prox_status = %(53)
+    IF &prox_status = 1 THEN GOSUB Getoffprox
+
+' set the location to move to before second contact
+   
+    PRINT "Tool #"; &ToolIN & " Current Position 1 = "; %(3)
+    PRINT "         Z Table Base Offset = "; %(8)
+
+    IF &ToolIN = 1 THEN &th_z = &Tool1_Z
+    IF &ToolIN = 2 THEN &th_z = &Tool2_Z
+    IF &ToolIN = 3 THEN &th_z = &Tool3_Z
+    IF &ToolIN = 4 THEN &th_z = &Tool4_Z
+    IF &ToolIN = 5 THEN &th_z = &Tool5_Z
+    IF &ToolIN = 6 THEN &th_z = &Tool6_Z
+    IF &ToolIN = 7 THEN &th_z = &Tool7_Z
+    IF &ToolIN = 8 THEN &th_z = &Tool8_Z
+
+    VA,,,%(3) + %(8),,,,,0             'Return to Table Base Coordinate system
+
+    &zOffset = 0  
+    FP, &ATC_Writer
+
+    PRINT "  Current Position 2 = "; %(3)
+    PRINT "         Z Table Base Offset = "; %(8)
+
+    VA,,,%(3)-&th_z+&zOffset,,,,,&th_z+&zOffset
+    
+    PRINT "  Current Position 3 = "; %(3)
+    PRINT "      th_Z = "; &th_z 
+    PRINT "         Z Table Base Offset = "; %(8)
+
+END            'This END statement causes the program to end here without
+                '  dropping through to subroutine
+
+Getoffprox:
+   'Use Arrow Keys to move Off of Prox Switch (ESC when Clear)
+    PAUSE
+    SK    
+ RETURN

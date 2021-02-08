@@ -1,0 +1,29 @@
+'Put description of your Custom Cut here in this line (after apostrophe)... 
+'   This first line will appear as a description in the drop-down listing.
+'   Other lines with apostrophes can be notes to you and do not display.
+
+' THEN, put all the stuff you want the Cut to do in the following lines ...
+'   ... just like a Part File (in fact, this is just a Part File with a special name).
+'-----------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+'-----------------------------------------------------------------------------
+' WHEN you're finished, SAVE this file AS CUSTOM_.SBC, where _ is a number
+'   from 1 to 99. Numbers 1 to 9 can be accessed with 2 keystrokes.
+'   All Custom Cuts can be called from files.
+'   Custom Cuts are the same thing as 'Macros'.
+'   You can Edit and these Custom Cut files anytime using [FE].
+' 
+' The Custom Cut List will be updated NEXT TIME time you start the ShopBot Software.
+' Currently active Custom Cuts are in the folder C:\SbParts\Custom ... have a look
+'   files there for examples.
+'
+' ... executing Custom Cut File

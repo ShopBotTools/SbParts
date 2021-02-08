@@ -1,0 +1,493 @@
+'MTC.SBP
+'Manual Tool Change Handler // Parallels ATC System
+'For Use with PartWorks Posts for Manual Tools Changes
+'5/2/10
+'8/21/12 safe_heights sub modified for 4 axis by GC
+'9/26/13 Add B axis tool change and fix Change_A [VI] command (GAB)
+'2/23/16 fixed typos in SAFE_HEIGHTS:, for 4th and 5th axis (MSS)
+'
+'Head 1 (Z) tools are #1...#19
+'Head 2 (A) tools are #21...#29
+'Drill 1 (Z) tools are #31...#39
+'Drill 2 (Z) tools are #41...#49
+'Drill 3 (A) tools are #51...#59
+'Drill 4 (A) tools are #61...#69
+'Head 2 (B) tools are #70...#79
+
+'	- Allows manual toolchange during cutting file and rezero of tool
+'	- Checks current tool in axis to see if change is required
+'	- Enter prefered bit change location into "MANUAL_CHANGE"
+'	- Current bit in each axis AND its offset is written to my_variables each time MTC is run
+'	- This allows software to track the bit in each axis..... if changed without using C9 then error will occur
+'	- FOR: eCabs/SB-LInk, PartWorks, VCPro [Tools Must be Numbered per System Above]
+'
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+'Initialize ...
+'-----------------------------------------------------------
+if %(22) = 1 then GoTo Preview_EndThis
+
+&testtool = &tool
+'If &testtool = "&tool" Then End                            'No Tool Define // Exit the whole thing Now
+
+&zero_to_bed = 1
+&DrillSW = 0
+&DrillOn = 0
+'&DrillOn2 = 0 'used to turn duel valve off
+&DrillOff = 0
+&On_Threshold = 0
+&Off_Threshold = 0
+&AreadyZeroed = 0
+&ZUnit = %(33)
+&AUnit = %(34)
+&BUnit = %(35)
+&SafeZ = %(28)
+
+''''''''Get Drill on off Thresholds'''''''''''''''''''''''''''''''''''''''
+VC,,,,,,,,0
+VO,0
+if &DrillType = 1 then GoSub DrillType
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+
+                                                        'Turn all offsets off
+if %(27) > 4 then GoSub PREP_5AXES
+if %(27) > 3 then GoSub PREP_4AXES
+if %(27) <= 3 then GoSub PREP_3AXES
+GoSub GET_SPEEDS											'Save exiting speed info for restore after zeroing
+GoSub CHECK_MTL												'Checks for bed or mtl zero and calcs the z cutting depth offsets for each tool
+ 
+'Initial Selector -------------------------------------------	
+'------------------------------------------------------------
+	if &tool < 1 then end						               'Just ignore MTC if improper tool# below 10; probably old post
+	if &tool > 79 then GoTo TOOL_ERROR						   'Ends if improperly high tool#
+	if &tool > 0 then GoTo CHANGE_Z						   	   'Sends tool# to the sorting routine; starting with Z
+
+'MAIN SECTIONS ----------------------------------------------
+'------------------------------------------------------------  CHANGE-Z Which is Main Start is at Bottom
+CHANGE_A_DRILL:
+	&DrillNo = 3
+	&DrillSW = 7
+	if &tool > 60 then GoTo CHANGE_A_DRILL2					   'Must be A-DRILL2
+	if &Num_Axes = 3 then GoTo TOOL_ERROR                      'Controls not set for A Axis, so bail
+    if &ZUnit <> &AUnit then GoTo UnitNotSame                  'SWAP requires similar units
+	if &tool = &a_drill_bit then GoTo SET_A_DRILL
+	GoSub MANUAL_CHANGE	
+	GoSub Zero_Drills
+	SET_A_DRILL:
+      GoSub SAFE_HEIGHTS
+      GoSub GetOffsetSA
+      VI,,,,,,, A, Z
+      &ZOff_Vo = &a_drill_Z_offset + &z_adjust
+      VO,1,&a_drill_X_offset,&a_drill_Y_offset,(&a_drill_Z_offset + &z_adjust)
+      VC,,,,,,,,,,Z,&DrillSW	
+      &a_drill_bit = &tool
+      Shell "C:\SbParts\Custom\MyVars.exe [&]a_drill_bit = &a_drill_bit"
+     ' JZ,%(29)   
+	  Gosub SAFE_HEIGHTS
+      'SO,&DrillSW,1
+     GoTo EndThis
+
+CHANGE_A_DRILL2:
+	&DrillNo = 4
+	&DrillSW = 8
+	if &tool > 70 then GoTo TOOL_ERROR                         'Ends if improper tool #; REDUNDANT
+	if &Num_Axes = 3 then GoTo TOOL_ERROR                      'Controls not set for A Axis, so bail
+    if &ZUnit <> &AUnit then GoTo UnitNotSame                  'SWAP requires similar units
+	if &tool = &a_drill_bit2 then GoTo SET_A_DRILL2
+	GoSub MANUAL_CHANGE
+	GoSub Zero_Drills
+	SET_A_DRILL2:
+      GoSub SAFE_HEIGHTS
+      GoSub GetOffsetsA2
+      VI,,,,,,, A, Z
+      VO,1,&a_drill_X_offset,&a_drill_Y_offset,(&a_drill_Z_offset + &z_adjust)
+      if &DrillType = 1 then &DrillOn2 = 8
+	  VC,,,,,,,,&DrillType,&DonThreshold,&DoffThreshold,Z,8
+      
+	  &a_drill_bit2 = &tool
+      Shell "C:\SbParts\Custom\MyVars.exe [&]a_drill_bit2 = &a_drill_bit2"
+	  Gosub SAFE_HEIGHTS
+     GoTo EndThis
+
+CHANGE_Z_DRILL:
+	&DrillNo = 1
+	&DrillSW = 5
+	if &tool > 40 then GoTo CHANGE_Z_DRILL2                     'Not Z-Drill but Z-Drill2 or A-Drill
+	if &tool = &z_drill_bit then GoTo SET_Z_DRILL
+	GoSub MANUAL_CHANGE
+	GoSub Zero_Drills
+	SET_Z_DRILL:
+      GoSub SAFE_HEIGHTS
+      GoSub GetOffsetsZ
+      VO,1,&z_drill_X_offset,&z_drill_Y_offset,(&z_drill_Z_offset + &z_adjust)
+	  if &DrillType = 1 then &DrillOn2 = 5
+      VC,,,,,,,,&DrillType,&DonThreshold,&DoffThreshold,Z,6	
+      &z_drill_bit = &tool
+      Shell "C:\SbParts\Custom\MyVars.exe [&]z_drill_bit = &z_drill_bit"
+      'JZ,%(28)
+	  Gosub SAFE_HEIGHTS
+      'SO,&DrillSW,1
+     GoTo EndThis
+
+CHANGE_Z_DRILL2:
+	&DrillNo = 2
+	&DrillSW = 6
+	if &tool > 50 then GoTo CHANGE_A_DRILL                      'Not Z-Drill2 but A-Drill
+	if &tool = &z_drill_bit2 then GoTo SET_Z_DRILL2
+	GoSub MANUAL_CHANGE
+	GoSub Zero_Drills
+	SET_Z_DRILL2:
+
+      GoSub SAFE_HEIGHTS
+      GoSub GetOffsetsZ2
+      VO,1,&z_drill_X_offset,&z_drill_Y_offset,(&z_drill_Z_offset + &z_adjust)
+	  
+       VC,,,,,,,,&DrillType,&DonThreshold,&DoffThreshold,Z,8	
+	  if &DrillType = 1 then &DrillOn2 = 7
+      &z_drill_bit2 = &tool
+      Shell "C:\SbParts\Custom\MyVars.exe [&]z_drill_bit2 = &z_drill_bit2"
+     GoTo EndThis
+
+CHANGE_A:
+	if &tool > 30 then GoTo CHANGE_Z_DRILL                      'Not A-Change but Z-Drill
+	if &Num_Axes < 4 then GoTo TOOL_ERROR                       'Controls not set for A Axis, so bail
+    if &ZUnit <> &AUnit then GoTo UnitNotSame                   'SWAP requires similar units
+	if &tool = &a_tool then GoTo SET_A
+	GoSub MANUAL_CHANGE
+	GoSub ZERO_A
+	SET_A:
+      GoSub Safe_4Axis
+      GoSub GetOffsetsHead2
+	  VI,,,,,,,A,Z
+      VO,1,&head_2_X_offset,&head_2_Y_offset,&z_adjust
+      &a_tool = &tool
+      Shell "C:\SbParts\Custom\MyVars.exe [&]a_tool = &a_tool" 'Update record of current a-tool
+	  GoSub SAFE_HEIGHTS
+      &spindle = 2
+     GoTo EndThis
+
+CHANGE_B:
+	if &Num_Axes < 5 then GoTo TOOL_ERROR                       'Controls not set for A Axis, so bail
+    if &ZUnit <> &BUnit then GoTo UnitNotSame                   'SWAP requires similar units
+	if &tool = &b_tool then GoTo SET_B
+	GoSub MANUAL_CHANGE
+	GoSub ZERO_B
+	SET_B:
+      GoSub Safe_5Axis
+      GoSub GetOffsetsHead2
+	  VI,,,,,,,B,,,Z
+      VO,1,&head_2_X_offset,&head_2_Y_offset,&z_adjust
+      &b_tool = &tool
+      Shell "C:\SbParts\Custom\MyVars.exe [&]b_tool = &b_tool" 'Update record of current a-tool
+	  GoSub Safe_5Axis
+      &spindle = 2
+     GoTo EndThis
+
+CHANGE_Z:
+	if &tool > 69 then GoTo CHANGE_B
+	if &tool > 20 then GoTo CHANGE_A                            'Not Manual Change of Z, but SWAP to A or DRILL
+	if &tool = &z_tool then GoTo SET_Z
+	GoSub MANUAL_CHANGE
+	GoSub ZERO_Z 
+	SET_Z:
+      if %(27) > 3 then GoSub Safe_4Axis
+	  if %(27) > 4 then GoSub Safe_5Axis
+	  VI,,,,,,,Z,A,,B
+	  VO,1,0,0,&z_adjust
+      &z_tool = &tool
+	  Shell "C:\SbParts\Custom\MyVars.exe [&]z_tool = &z_tool"  'Update record of current z-tool
+	  GoSub SAFE_HEIGHTS
+	  &spindle = 1
+     GoTo EndThis
+
+'Exits ----------------------------------------------------------
+'----------------------------------------------------------------
+EndThis:
+	 VS,&xy_move,&z_move,&a_move,,&xy_jog,&z_jog,&a_jog
+	 &DrillNo = 0                                               
+ end
+
+Preview_EndThis:
+ end
+
+'=====================================================================
+'                 SUBROUTINES
+'=====================================================================
+PREP_3AXES:
+   &NumAxes = 3
+   GoSub SAFE_HEIGHTS
+ return
+
+PREP_4AXES:
+   &NumAxes = 4
+   GoSub SAFE_HEIGHTS
+   VI,,,,,,,Z,A     'Make sure that axes are initially assigned correctly
+ return
+
+ PREP_5AXES:
+   &NumAxes = 5
+   GoSub SAFE_HEIGHTS
+   VI,,,,,,,Z,A,,B     'Make sure that axes are initially assigned correctly
+ return
+
+SAFE_HEIGHTS: 'Make sure we're at a safe height
+	'check if current height is greater than safe-z height. If so, set safe z-heigh to current height
+	'(to prevent a plunge). Subtracting the %63 prevents the safez from increasing if a 3d offset is 
+	'present:
+	if %(3) > %(28) then &SafeZ = %(3)-%(63) 
+	if &NumAxes = 3 then GoSub Safe_3Axis
+	if &NumAxes = 4 then GoSub Safe_4Axis
+	if &NumAxes = 5 then GoSub Safe_5Axis
+	Return
+
+	Safe_3Axis: 
+		J3,,,&SafeZ 'move the z-axis to safeZ
+	Return
+
+	Safe_4Axis:
+   		J4,,,&SafeZ,&SafeZ 'move z and a to safeZ
+ 	Return
+
+	Safe_5Axis:
+		'If B-axis unit value is less than 200, the b-axis is probably rotary and is ignored; treat as 4-axis tool
+		if %(35) < 200 then Goto Safe_4Axis: 
+		'otherwise, B-axis i probably linear and is moved along with other axes
+		J5,,,&SafeZ,&SafeZ,&SafeZ 'move z, a, and b to safeZ
+	Return
+
+MANUAL_CHANGE:
+    SO, 4,0     'Pulse #4 to Set Up Spindle Start Question
+	'Pause .5
+	'SO, 4,1
+
+	'if &ToolName <> "" then &ToolName = ""
+	MSGBOX(Is &ToolName tool number &tool in spindle? ,YesNoCancel,Change bit?)
+	if &msganswer = Cancel then ENDALL
+	if &msganswer = no then GoTo changebit
+	
+	MSGBOX(Is Z axis zeroed? ,YesNoCancel,ZeroZ)
+	if &msganswer = Cancel then ENDALL
+	if &msganswer = YES then GoTo AlreadyZero
+
+
+	if &my_ZzeroStartX = NO then GoTo JustZero
+    'Hit OK to move to your preferred starting point to start the routine.
+	     PAUSE
+         GoSub SAFE_HEIGHTS
+		 &AllReadyThere = 1
+	     J2, &my_ZzeroStartX, &my_ZzeroStartY
+	JustZero:
+         GoSub SAFE_HEIGHTS
+		 if &my_ZzeroStartX = YES then GoTo NoKeyBoard
+		 MSGBOX(Use key Board to move X Y to preferred Z zero point? ,YesNoCancel,KeyPad?)
+		 if &msganswer = Cancel then ENDALL
+		 if &msganswer = YES then GoSub OPENSK
+		 NoKeyBoard:
+		 
+       return
+	AlreadyZero:
+	   &AreadyZeroed = 1
+       return
+
+
+
+Changebit:
+   msgbox (do you want to use the keypad to move to a Height with room to change the bit?,YesNoCancel,Use KeyPad)
+   if &msganswer = Cancel then ENDALL
+   if &msganswer = YES then SK
+   MSGBOX(Change bit to &ToolName Number &tool then Enter when ready to Zero ,OKCancel,Change bit to next cutter)
+   if &msganswer = Cancel then ENDALL
+	if &msganswer = OK then GoTo JustZero
+  'Return
+OPENSK:
+	SK
+ return
+ 
+ ''''''''Get Drill on off Thresholds'''''''''''''''''''''''''''''''''''''''
+ 
+ DrillType:
+ 	if &tool < 30 then return
+	&DonThreshold = %(141)
+	&DoffThreshold = %(142)
+	&TestOn = 0
+	if &PWZorigin <> "Table Surface"  then GoTo TestSurf
+		&TestOn = &PWSafeZ - &PWMaterial
+		if &DoffThreshold < &TestOn then GoTo TestSurf
+			&DoffThreshold = &TestOn + &PWMaterial - .0625
+			&DonThreshold = &PWMaterial + .125
+			GoTo OffOnSet
+	TestSurf:
+		if &PWZorigin = "Table Surface" then &DonThreshold = &PWMaterial + .125
+		if &PWZorigin = "Table Surface" then &DoffThreshold = &PWMaterial + .0625
+	OffOnSet:
+	
+	if &PWZorigin <> "Material Surface"  then GoTo TestTable
+		&TestOn = &PWSafeZ
+		if &DoffThreshold < &TestOn then GoTo TestTable
+			&DoffThreshold = .0625
+			&DonThreshold = .125
+			GoTo OffOnSet2
+	TestTable:
+		if &PWZorigin = "Material Surface" then &DonThreshold =  .125
+		if &PWZorigin = "Material Surface" then &DoffThreshold = .0625
+	OffOnSet2:
+	
+	return
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+ 
+
+ZERO_Z:
+	if &AreadyZeroed = 1 then GoTo SetZTool
+	SO,4,0 ' Turn #4 Off then on to force message to press start
+   	pause .5
+   	SO,4,1
+	C2
+	&AllReadyThere = 0
+ return
+ SetZTool:
+	&z_tool = &tool
+ return
+
+ZERO_A:
+	if &AreadyZeroed = 1 then GoTo SetATool
+	SO,4,0  ' Turn #4 Off then on to force message to press start
+   	pause .5
+   	SO,4,1
+	FP,C:\SbParts\Azero.sbp
+ return
+ SetATool:
+	&a_tool = &tool
+ return
+
+ ZERO_B:
+	if &AreadyZeroed = 1 then GoTo SetBTool
+	SO,4,0  ' Turn #4 Off then on to force message to press start
+   	pause .5
+   	SO,4,1
+	FP,C:\SbParts\Bzero.sbp
+ return
+ SetBTool:
+	&b_tool = &tool
+ return
+
+Zero_Drills:
+	if &AreadyZeroed = 1 then GoTo SetDrillTool
+	FP,C:\SbParts\Drill Offset.sbp
+	SetDrillTool:
+	if &DrillNo = 1 then &z_drill_bit = &tool
+	if &DrillNo = 2 then &z_drill_bit2 = &tool
+	if &DrillNo = 3 then &a_drill_bit = &tool 
+	if &DrillNo = 4 then &a_drill_bit2 = &tool
+ return
+
+GetOffsetsZ:
+	if %(25) = 0 then &z_drill_X_offset = &my_XinDrilloffset_T31
+	if %(25) = 0 then &z_drill_Y_offset = &my_YinDrilloffset_T31
+	if %(25) = 0 then &z_drill_Z_offset = &my_ZinDrilloffset_T31
+	if %(25) = 1 then &z_drill_X_offset = &my_XmmDrilloffset_T31
+	if %(25) = 1 then &z_drill_Y_offset = &my_YmmDrilloffset_T31
+	if %(25) = 1 then &z_drill_Z_offset = &my_ZmmDrilloffset_T31
+ return
+
+GetOffsetsZ2:
+	if %(25) = 0 then &z_drill_X_offset = &my_XinDrilloffset_T32
+	if %(25) = 0 then &z_drill_Y_offset = &my_YinDrilloffset_T32
+	if %(25) = 0 then &z_drill_Z_offset = &my_ZinDrilloffset_T32
+	if %(25) = 1 then &z_drill_X_offset = &my_XmmDrilloffset_T32
+	if %(25) = 1 then &z_drill_Y_offset = &my_YmmDrilloffset_T32
+	if %(25) = 1 then &z_drill_Z_offset = &my_ZmmDrilloffset_T32
+ return
+
+GetOffsetSA:
+	if %(25) = 0 then &a_drill_X_offset = &my_XinDrilloffset_T33
+	if %(25) = 0 then &a_drill_Y_offset = &my_YinDrilloffset_T33
+	if %(25) = 0 then &a_drill_Z_offset = &my_ZinDrilloffset_T33
+	if %(25) = 1 then &a_drill_X_offset = &my_XmmDrilloffset_T33
+	if %(25) = 1 then &a_drill_Y_offset = &my_YmmDrilloffset_T33
+	if %(25) = 1 then &a_drill_Z_offset = &my_ZmmDrilloffset_T33
+ return
+
+GetOffsetsA2:
+	if %(25) = 0 then &a_drill_X_offset = &my_XinDrilloffset_T34
+	if %(25) = 0 then &a_drill_Y_offset = &my_YinDrilloffset_T34
+	if %(25) = 0 then &a_drill_Z_offset = &my_ZinDrilloffset_T34
+	if %(25) = 1 then &a_drill_X_offset = &my_XmmDrilloffset_T34
+	if %(25) = 1 then &a_drill_Y_offset = &my_YmmDrilloffset_T34
+	if %(25) = 1 then &a_drill_Z_offset = &my_ZmmDrilloffset_T34
+ return
+
+GetOffsetsHead2:
+	if %(25) = 0 then &head_2_X_offset = &my_XinHead2offset
+	if %(25) = 0 then &head_2_Y_offset = &my_YinHead2offset
+	if %(25) = 1 then &head_2_X_offset = &my_XmmHead2offset
+	if %(25) = 1 then &head_2_Y_offset = &my_YmmHead2offset
+ return
+
+GET_SPEEDS:
+	&xy_move = %(71)
+	&z_move = %(73)
+	&a_move = %(74)
+	&xy_jog = %(76)
+	&z_jog = %(78)
+	&a_jog = %(79)
+ return
+
+CHECK_MTL:
+	 'If &zshift = 0 Then GoSub MTL_ERROR
+      &zshift = 0
+      if &zero_to_bed = 0 then GoTo doaskbed
+      if &zero_to_bed = 1 then GoTo doaskbed
+            MSGBOX(Did you Zero to bed? ,YesNo,ZERO BIT?)
+      doaskbed:
+      if &msganswer = NO then &zero_to_bed = 0
+      if &msganswer = YES then &zero_to_bed = 1
+      
+      &z_adjust = &zshift * &zero_to_bed
+ return
+		'MTL_ERROR:
+		'INPUT "SYSTEM DOES NOT HAVE VALID MATERIAL THICKNESS, ENTER EXACT THICKNESS NOW!" &zshift
+		'RETURN
+
+Get_VO_Sets:
+	if &On_Threshold = "" then GoTo Vo_HasDone
+	return	
+	Vo_HasDone:
+		&On_Threshold = %(141)
+		&Off_ThresholdReturn = %(142)
+ return
+
+PREV_ERROR:
+	&head_2_X_offset = 0
+	&head_2_Y_offset = 0
+	'A axis drills
+	&a_drill_X_offset = 0
+	&a_drill_Y_offset = 0
+	&a_drill_Z_offset = 0
+	'Z axis drills
+	&a_drill_X_offset = 0
+	&a_drill_Y_offset = 0
+	&a_drill_Z_offset = 0
+
+	'MSGBOX(**CANNOT RUN IN PREVIEW MODE**,0,EXITING)
+end
+
+TOOL_ERROR:
+	MSGBOX(**WRONG TOOL NUMBER**,0,FILE ENDING)
+''##What Switches to turn off??
+	VO,0																	'reset offsets
+    GoSub SAFE_HEIGHTS
+	VI,,,,,,, Z, A			'reset axis to default
+	ENDAll  'We have failed best end all here
+
+UnitNotSame:
+''##What Switches to turn off??
+	VO,0																	'reset offsets
+    GoSub SAFE_HEIGHTS
+	VI,,,,,,, Z, A			'reset axis to default
+	'Unit Values for Z and A are Not the Same!
+	Pause
+	ENDAll  'We have failed best end all here
+	
+	

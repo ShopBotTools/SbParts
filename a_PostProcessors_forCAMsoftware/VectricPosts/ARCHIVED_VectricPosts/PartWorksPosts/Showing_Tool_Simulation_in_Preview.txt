@@ -1,0 +1,25 @@
+Applies to ShopBot Control Software 3.6.34 and later.
+-----------------------------------------------------
+
+ShopBot's Preview system shows the track of any toolpath in a part file. It is also capable of simulating the effect of a cutter and displaying exactly what a part will look like when machined.
+
+ShopBot's Design Software, PartWorks, is set up to format PartFiles so that these capabilites are fully enabled. Make sure you are using ShopBot Software 3.6.34 or later and PartWorks 3.0 or later and the most current PostProcessors, which can be copied from C:\SbParts\PartWorksPosts to the PartWorks folder, C:\ProgramData\Vectric\PartWorks\V3.0\PostP.
+
+These same PostProcessors should work with earlier versions of PartWorks as well.
+
+
+
+Using Files from other software in Preview, or writing your own files.
+----------------------------------------------------------------------
+
+The simulation feature of the Previewer can be used manually by clicking simulate and choosing a cutter from the library. This only allows simulation of one tool path at a time.
+
+Posts from other software, and files written manually, can be given these capabilities if the following comment lines exemplified here are inserted into the PartFile. Note that to work correctly, the cutter name must =exactly= match the name of a cutter defined in the tooldatabase.
+
+
+'New Path
+'Toolpath Name = myToolPath
+'Tool Name   = Name of a Cutter from Tool database
+
+
+ 

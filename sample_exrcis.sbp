@@ -1,0 +1,84 @@
+'S_zxrcis.sbp -- Exercise (break-in) Program
+
+' The following licensing information must accompany this file at all times.
+
+
+' ********** Licensing Information **********
+
+' Copyright 2001 ShopBot Tools
+'
+' We encourage ShopBot users to modify this part file to suit their own needs and have licensed it 
+' under the Creative Commons Atribution 3.0 license.  This license allows you to copy, distribute, 
+' or modify the file with certain restrictions. Any other use requires permission from ShopBot Tools.
+'
+' A simplified explanantion of this license is available at  
+' http://creativecommons.org/licenses/by/3.0/us/ 
+'
+' and the full legal code can be found at 
+' http://creativecommons.org/licenses/by/3.0/us/legalcode
+
+' We encourage you to read this legal code before modifying or distributing  this file, 
+' ESPECIALLY sections 5 and 6 that cover warranties and liability.
+'
+' If you plan on distributing your new version, you must also state in the header of your file that it
+' is a modification of a file supplied by Shopbot Tools, supply information on finding the original file, 
+' and rename the file to make it clear to the user that it is a modified version. 
+
+'
+' ********** End Licensing Information **********
+
+' User takes responsibility for the effects and outcomes of the use of this program, and ShopBot Tools assumes
+' no liability it's use.
+
+
+'Moves any axis to full extent of motion repeatedly help keep the rails
+'    evenly worn.
+'Copyright 2003 ShopBot Tools, Inc.  All rights reserved.
+'    Written by Grant Bailey 1/31/03, 5/15/03
+
+'You should run this file after you get the tool set up for the first time
+'  and at regular intervals, like every 2 months or so.  It is especially
+'  important if you only regularly use a limited range of an axis' motion
+'  to help keep the wearn on the rail even.
+'This file will let you use the keyboard command to manually find the extents
+'  of motion.  It will then begin moving up and down until it is manually
+'  stopped by the spacebar or the "s" key.
+
+&zfinish=0
+
+PRINT "You are about to move all axes to the top of their range of motion."
+PAUSE 5
+PRINT "Where the numbers read the highest."
+PAUSE 5
+PRINT "You will do this using the arrow keys in the keyboard command."
+PAUSE 5
+PRINT "Do not move any axes you are not exercising."
+PAUSE 5
+PRINT "Be careful not to run it into the stops and hit Esc when you are done."
+PAUSE 5
+SK
+&xtop=%(1)              	'defines current position as top of range of motion for exercise
+&ytop=%(2)
+&ztop=%(3)      
+PRINT "Enter to continue."
+PAUSE
+PRINT "Now you will use the arrow keys to move to the lowest extent of motion"
+PAUSE 5
+PRINT "Do not move any axes you are not exercising."
+PAUSE 5
+PRINT "Again be careful of the stops and hit Esc when you are done."
+PAUSE 5
+SK
+&xbottom=%(1)                   'defines current position as bottom of range of motion
+&ybottom=%(2)
+&zbottom=%(3)   
+PRINT "Enter to continue."
+PAUSE
+PRINT "Exercise will begin when you hit Enter and won't stop until you hit Spacebar."
+PAUSE
+
+LOOP:   
+
+J3,&xtop,&ytop,&ztop        'move to upper extent of motion
+J3,&xbottom,&ybottom,&zbottom     'move to lower extent of motion
+GOTO LOOP       'go do it again

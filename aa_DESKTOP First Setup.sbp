@@ -1,0 +1,31 @@
+'This is the configuration file for Desktop tools
+'
+'This file should only be run the first time that the ShopBot software is installed
+'
+'There are two things that this file will do:
+'1- setup the custom proximity switch offsets required for the Desktop tool
+'2- change the &ToolType variable in my_variables.sbc to "DT"
+
+MSGBOX(Are you sure you want to run this routine? This will overwrite any custom proximity switch offsets.,YesNo,Really Run?)
+	IF &megsnswer = YES Then GoTo CHANGE
+	IF &msganswer = NO Then GoTo NOCHANGE
+
+CHANGE:
+IF %(25)=0 Then GoTo CHANGEENGLISH
+IF %(25)=1 Then GoTo CHANGEMETRIC
+GoTo NOCHANGE:
+
+CHANGEENGLISH:
+Shell "C:\SbParts\Custom\MyVars.exe &my_XYzeroOffsetX=-0.875"
+Shell "C:\SbParts\Custom\MyVars.exe &my_XYzeroOffsetY=-0.5"
+Shell "C:\SbParts\Custom\MyVars.exe &ToolType=DT"
+GOTO NOCHANGE
+
+CHANGEMETRIC:
+Shell "C:\SbParts\Custom\MyVars.exe &my_XYzeroOffsetX=-22.225"
+Shell "C:\SbParts\Custom\MyVars.exe &my_XYzeroOffsetY=-12.7"
+Shell "C:\SbParts\Custom\MyVars.exe &ToolType=DT"
+GOTO NOCHANGE
+
+NOCHANGE:
+END

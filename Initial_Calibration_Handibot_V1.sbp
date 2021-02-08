@@ -1,0 +1,94 @@
+'Initial Setup for Desktop/Handibot units
+
+'-----------------Initial Setup
+
+
+'Determine whether we are in Preview mode or Move/Cut mode
+   &modenow = %(22)
+   if &modenow = 1 Then GoSub Changemode
+
+
+'Confirm Spindle OFF
+   SO, 1, 0
+   IF &my_hasZProx = 1 then GoSub AskToReset
+
+
+
+
+MSGBOX(Is your machine a Desktop?, YesNo, "")
+	IF &msganswer = no then gosub Handibot
+
+fp, C:/ProgramData/ShopBot/ShopBot 3/Settings/PRS ShopBots/ShopBot_PRSDesktop2418.sbd
+
+
+MSGBOX(We will now Calibrate the motion control for your tool.  Each axis will move and then ask the direction of motion - pay close attention!,OkOnly, "")
+
+MSGBOX(The keypad will open when you click OK.  Move each axis until the router/spindle is located in the center of your table and the Z axis is roughly halfway up.  Then close the Keypad with the [X]., OkCancel,"")
+	IF &msganswer = cancel then ENDALL
+Keypad:
+	sk,
+
+
+MSGBOX(Is the tool centered?, YesNoCancel,"")
+	IF &msganswer = no then goto Keypad
+	IF &msganswer = cancel then ENDALL
+
+CheckX:
+MSGBOX(The X-axis will now move., OkCancel, "")
+	IF &msganswer = cancel then ENDALL
+z3,
+mx, 1
+MSGBOX(Did the X-axis move to the right?  Cancel if you are not sure., YesNoCancel, "")
+	IF &msganswer = cancel then goto CheckX
+	IF &msganswer = yes then goto CheckY
+
+VU, -4000
+
+CheckY:
+MSGBOX(The Y-axis will now move, OkCancel, "")
+	IF &msganswer = cancel then ENDALL
+my, 1
+MSGBOX(Did the Y-axis move towards the back of the machine? Cancel if you are not sure., YesNoCancel, "")
+	IF &msganswer = cancel then goto CheckY
+	If &msganswer = yes then goto CheckZ
+VU, ,-4000
+
+CheckZ:
+MSGBOX(The Z-axis will now move, OkCancel, "")
+	IF &msganswer = cancel then ENDALL
+mz, 1
+
+MSGBOX(Did the Z-axis move upwards? Cancel if you are not sure., YesNoCancel, "")
+	IF &msganswer = cancel then goto CheckZ
+	If &msganswer = yes then goto Calibrated
+
+VU, ,,-4000
+
+Calibrated:
+SV,
+MSGBOX(Your tool is now calibrated.  Hit Ok to begin the XY zeroing routine, Cancel to quit., OkCancel, "")
+	If &msganswer = ok then goto XY
+	If &msganswer = cancel then ENDALL
+
+XY:
+	fp, XYzero.sbp
+
+
+
+
+
+
+Changemode:
+'Tool must be in Move/Cut mode to continue.  Change this setting on the red position screen.
+    PAUSE 
+ End                            'Exit program now
+
+
+
+End
+
+Handibot:
+	MSGBOX(Is your machine a Handibot?, YesNo, "")
+		IF &msganswer = no then ENDALL
+fp, C:/ProgramData/ShopBot/ShopBot 3/Settings/PRS ShopBots/Handibot.sbd
+	return

@@ -1,0 +1,19 @@
+'
+'Calls ATC_Variables file to set user variables from a predefined list
+'For Use with ATC
+'6/26/06
+
+
+
+    &ATC_folder_path = C:\SbParts\Custom\ATC\
+    &ATC_local_data_path = C:\SbParts\Custom\ATC_Local_Data\
+
+    &ATC_Variables = &ATC_local_data_path & "ATC_Variables.sbc"
+    &ATC_Toolvar_outname = &ATC_local_data_path & "ATC_Tool_Variables.sbc"
+    &ATC_Writer = &ATC_folder_path & "ATC_Write_Tool_Variables.sbp"
+    &ATC_Restore_Settings = &ATC_folder_path & "ATC_restore_settings.sbp"
+    &ATC_Check_Status = &ATC_folder_path & "ATC_check_status.sbp"
+    &ATC_Run_ATC = &ATC_folder_path & "ATC.sbp"
+
+    FP, &ATC_Variables
+    FP, &ATC_Toolvar_outname

@@ -1,0 +1,21 @@
+'Zero Z Axis w/ Zzero Plate 
+'
+'
+
+
+
+If &ATC = 1 Then GoTo IsATC
+If &ATC = 0 Then GoTo IsMTC
+If &ATC = 3 Then GoTo IsATC
+If &ATC = 4 Then GoTo IsATC
+IsMTC:
+	FP,C:\SbParts\Zzero.sbp
+	GoTo IsDone
+
+
+IsATC:
+	FP,C:\SbParts\ZzeroATC.sbp
+	GoTo IsDone
+
+
+IsDone:

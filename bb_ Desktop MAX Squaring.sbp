@@ -1,0 +1,198 @@
+' The following licensing information must accompany this file at all times.
+' ********** Licensing Information **********
+' Copyright 2001 - 2014 ShopBot Tools
+' We encourage ShopBot users to modify this part file to suit their own needs and have licensed it 
+' under the Creative Commons Atribution 3.0 license.  This license allows you to copy, distribute, 
+' or modify the file with certain restrictions. Any other use requires permission from ShopBot Tools.
+'
+' A simplified explanantion of this license is available at  
+' http://creativecommons.org/licenses/by/3.0/us/ 
+' and the full legal code can be found at 
+' http://creativecommons.org/licenses/by/3.0/us/legalcode
+' We encourage you to read this legal code before modifying or distributing  this file, 
+' ESPECIALLY sections 5 and 6 that cover warranties and liability.
+'
+' If you plan on distributing your new version, you must also state in the header of your file that it
+' is a modification of a file supplied by Shopbot Tools, supply information on finding the original file, 
+' and rename the file to make it clear to the user that it is a modified version. 
+' ********** End Licensing Information **********
+'
+'MAX Squaring.sbp -- Crashes machine into the positive X motors to ensure that gantry is square. Only for use on Desktop MAX machines
+'Copyright 1998-2015. ShopBot Tools, Inc.
+'----------------------------------------------------------------------------------------
+'*NOTE* This file will always be over-written during software update installations to insure
+'        it is kept standard and current.
+'----------------------------------------------------------------------------------------
+'Table Base Coordinates Zeroed During Routine
+'Variables in this file are read from the my_variables.sbc file in c:\Sbparts\Custom
+'Recent updates by ShopBot:
+'11/5/2015- KWP Created
+
+
+MSGBOX(Are you sure you want to run this routine? This will run the gantry aginst the hard stops to square it. X position WILL be lost.,YesNo,Really Run?)
+	IF &megsnswer = YES Then GoTo PROCEED
+	IF &msganswer = NO Then GoTo XComplete
+PROCEED:
+'Determine whether we are in Preview mode or Move/Cut mode
+   &modenow = %(22)
+   if &modenow = 1 THEN GOSUB Changemode
+
+'Load the custom variables file loaded by Custom Cut 90 (these are variable generated with Setup Tool)
+   C#,90
+'Zeroing Offsets were set in either inches or metric, this make sure we handle them correctly
+   &SCALE = 1 'set to a default value for case of working in correct units
+   &X_dist = (&my_XYzeroOffsetX * &SCALE)
+   &Y_dist = (&my_XYzeroOffsetY * &SCALE)
+'Confirm Spindles OFF
+   SO, 1, 0
+   SO, 2, 0
+
+'Get Speed Limits
+   IF %(25) = 0 THEN GOSUB GetInchSpeedLimits
+   IF %(25) = 1 THEN GOSUB GetMetricSpeedLimits
+
+
+'----------------------------------------------------------------Read the starting speed values to reset later  
+   &start_XYmove_Speed = %(71)
+   &start_XYjog_Speed = %(76)
+
+   &XYapproach_Speed = &start_XYmove_Speed
+   &XYtempJog_Speed = &start_XYjog_Speed
+   IF &XYapproach_Speed > &TopApproachSpeed THEN &XYapproach_Speed = &TopApproachSpeed
+   IF &XYtempJog_Speed > &TopJogSpeed THEN &XYtempJog_Speed = &TopJogSpeed
+
+   VS, &XYapproach_Speed,,,,&XYtempJog_Speed                    '... and assign slower speeds
+'---------------------------------------------------------------------------------------------------------------
+
+                            'This version of XYzero deals with only two possibilities ...
+   &SW2_SwitchType = %(92)  '  If #2 Input is 2, then we have (PRS) normally-closed switches on #2 and #3                  
+                            '  Otherwise, we have a (PRT) with normally-open switches on #3
+
+Check_Switch_Status:        '  ... will return to use this again if needed
+'Check status of current inputs to know if we have to clear switches
+    IF &SW2_SwitchType = 2 THEN GOTO Check_PRS
+  Check_PRT: 
+    &TrgtHIT = 1
+    &Xtrgt = 3
+    &Ytrgt = 3
+	&Ztrgt = 3
+    IF %(53) = &TrgtHIT THEN GOTO Getoffprox  
+    GoTo Start_Zeroing
+  Check_PRS: 
+    &TrgtHIT = 0
+    &Xtrgt = 2
+    &Ytrgt = 3
+	&Ztrgt = 5
+    IF %(52) = &TrgtHIT THEN GOTO Getoffprox  
+    IF %(53) = &TrgtHIT THEN GOTO Getoffprox
+
+Start_Zeroing:
+   SA     	'Set tool to Absolute mode
+
+'Limits are deactivated here, automatically reset to original state when file ends 
+   VN, 0                    'Deactivate the limit switch functionality on input #3
+   SF, 0                    'Deactivate software limits
+
+' Only move to safe Z position if it's above the current position
+   IF &my_hasZProx = 1 THEN GOTO Has_ZProx
+     &zup = %(28)             'Use SafeZ as set with [VC]
+     IF &zup = "" THEN &zup = 0
+     &z_minimum = &my_ZzeroThickness * 2   'If pull up not greater than thickness, just double thicknes
+     IF &zup < &z_minimum THEN &zup = &z_minimum
+
+     IF %(3) < &zup THEN MZ, &zup
+   Goto ZIsSafe
+
+Has_ZProx:
+    &ResetZ = 0
+	IF &ResetZ = 2 THEN GOTO ZIsSafe
+    &INP_Z = 50 + &Ztrgt
+	IF %(&INP_Z) = &TrgtHit THEN GOTO Getoffprox    
+    ON INP(&Ztrgt,&TrgtHIT) GOTO Zcontact
+      MZ, &big_Zmove
+    MSGBOX (Error reaching Z prox switch!, OKONLY, PROX SWITCH ERROR)
+  END
+
+ZIsSafe:
+'Start Homing in the X axis
+  'First set the contact switch action ... 
+   ON INP(&Xtrgt,&TrgtHIT) GOTO Xcontact   'this is where we'll go on contact with switch 
+  'Then start the move in X (just a big positive number ... assumes we'll hit prox switch)
+   JX, &big_Xmove
+     MSGBOX (Error reaching X prox switch!, OKONLY, PROX SWITCH ERROR)
+     END
+  ' ... we return here after handling X squaring
+XComplete:          
+
+   VS, &start_XYmove_Speed,,,,&start_XYjog_Speed
+
+'Tool is now Squared
+   PAUSE 
+END 	'NORMAL END ... This END statement causes the program to end here without
+            '  dropping through to subroutines
+
+
+'SUBROUTINES ---------------------------------------------------------------------------
+
+Xcontact:
+ 'This is our subroutine for action on hitting the switch
+   'We hit the prox switch! 
+     ON INP(&Xtrgt,&TrgtHIT)    'Set interrupt to nothing to turn off
+       &last_X_touch = %(1)     'Variable saved for debugging, view location with [UL] ...
+     VA, 0                'Zero X axis
+     PAUSE 1
+	 IF %(25)=0 Then VR,2,,,,,,,,0.025
+	 IF %(25)=1 Then VR,50.79,,,,,,,,0.635
+     MX, &small_Xmove				  'Move X axis 2 inches past prox switch, which will crash it
+     VA, 0                'Zero X again so we know where we are at
+	 PAUSE .5
+	 IF %(25)=0 Then VR,0.4,,,,,,,,0.15
+	 IF %(25)=1 Then VR,10.16,,,,,,,,3.81
+     MX, -&small_Xmove				  'Move X back to other side of prox switch so C3 routine will work properly
+	 IF %(25)=0 Then VA, 36				  'Set X position for an approixmate value of where it would be if prox switch used.
+	 IF %(25)=1 Then VA, 914.4
+     GOTO XComplete                     'This RETURNs us to the next main file line
+
+Zcontact:
+ 'This is our subroutine for action touching off on the Z switch
+   'We hit the prox switch! 
+        ON INP(&Ztrgt,&TrgtHIT)
+		MZ, %(3)- &MoveZ
+   'Z Axis now zeroed ...        Based on Saved Value in my Variables; if new bit, this is not a true zero ...
+     PAUSE 1
+     GOTO ZIsSafe                     'This RETURNs us to the next main file line
+
+
+'SPECIAL SUBROUTINES -------------------------------------------------------------------
+Changemode:
+'Tool will not do XY Zeoring in Preview Mode. Quit and change Move/Cut mode ...
+    PAUSE 
+END                            'Exit program now
+
+Getoffprox:
+'Use Arrow Keys to move Off of Prox Switch (ESC when Clear)
+    PAUSE
+    SK
+ GOTO Check_Switch_Status       'Go Back to Re-check Status
+
+GetInchSpeedLimits:
+   &TopApproachSpeed = 1.0
+   &TopJogSpeed = 3.5
+   &move_off_switchX = &X_dist + 1
+   &move_off_switchY = &Y_dist + 1
+   &big_Xmove = 200
+   &small_Xmove = 2
+   &MoveZ = .125
+   &big_Zmove = 7
+RETURN
+
+GetMetricSpeedLimits:
+   &TopApproachSpeed = 25.4
+   &TopJogSpeed = 88.9
+   &move_off_switchX = &X_dist + 25.4
+   &move_off_switchY = &Y_dist + 25.4
+   &big_Xmove = 5000
+   &small_Xmove = 50.8
+   &MoveZ = 3
+   &big_Zmove = 177.8
+RETURN

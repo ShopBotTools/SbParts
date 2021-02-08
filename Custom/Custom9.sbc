@@ -1,0 +1,26 @@
+'(file use only; MTC/ATC)
+'ATC Tool Change ... for calling from within Part File
+'For Use with ATC
+'6/26/06
+
+
+If &ATC = 1 Then GoTo IsATC
+If &ATC = 0 Then GoTo IsMTC
+If &ATC = 3 Then GoTo IsATC
+If &ATC = 4 Then GoTo IsATC
+
+IsMTC:
+	FP,C:\SbParts\Custom\MTC\MTC.sbp
+	GoTo IsDone
+
+
+IsATC:
+	&modenow = %(22)
+	If &modenow = 1 Then GoTo CHANGEMODE
+
+	FP,C:\SBPARTS\custom\ATC\ATC.sbp
+	GoTo IsDone
+
+CHANGEMODE:
+
+IsDone:

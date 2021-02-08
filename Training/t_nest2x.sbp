@@ -1,0 +1,26 @@
+'Part File name t_nest2x.sbp
+'Put multiple parts where you want them
+
+   J2  24, 10
+
+'This version illustrates using PAUSE to display a simple message
+
+'Please Turn On Dust Collector
+ PAUSE
+
+   FP, logo.sbp,,,,,2   'cuts file here
+
+'now move again
+   J2  48, 10
+
+   FP, logo.sbp,,,,,2
+
+   J2  72, 10
+
+   FP, logo.sbp,,,,,2
+
+ 
+   JH
+
+
+

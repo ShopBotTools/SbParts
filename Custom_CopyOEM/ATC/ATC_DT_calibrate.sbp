@@ -1,0 +1,75 @@
+'This will calibraite the and record the tool clip locations for a Desktop ATC
+'It will extend the tool bar then open the key pad for the user to move the move
+'X,Y and Z into the number one tool clip.
+
+'We will first home the machine.
+Pause
+C3
+
+'The press Ok and the tool bar will extend
+Pause
+SO,7,1
+VN,0
+'Presing ok will open the Key pad for you to move the X,Y and Z into the tool clip at position #1
+Pause
+SK
+&XX1 = %(1)
+&YY1 = %(2)
+&ZZ1 = %(3) + %(8)
+
+MZ,%(3) + 2.5
+MY,%(2) + 15
+'Now, use the keypad to lower the tool holder into the tool clip at position #6, you may need to make adjustments in the X axis position to achieve alignment
+Pause
+SK
+&XX2 = %(1)
+
+
+&ATC_variables = "C:\SbParts\Custom\ATC_Local_Data\ATC_variables.sbc"
+OPEN &ATC_variables FOR OUTPUT AS #1
+
+WRITE #1; "&NUMCLIPS = 6"
+WRITE #1; "&XX="; &XX1
+WRITE #1; "&YY" =";  &YY1
+WRITE #1; "&ZZ ="; &ZZ1
+WRITE #1; "&XX2="; &XX2
+WRITE #1; "&CLIP1_X =&XX"
+WRITE #1; "&CLIP1_Y =&YY"
+WRITE #1; "&CLIP1_Z =&ZZ"
+WRITE #1; "&CLIP2_X =&XX + (&XX2-&XX)/5 * 1"
+WRITE #1; "&CLIP2_Y =&YY +(3*1)"
+WRITE #1; "&CLIP2_Z =&ZZ"
+WRITE #1; "&CLIP3_X =&XX + (&XX2-&XX)/5 * 2"
+WRITE #1; "&CLIP3_Y =&YY +(3*2)"
+WRITE #1; "&CLIP3_Z =&ZZ"
+WRITE #1; "&CLIP4_X =&XX + (&XX2-&XX)/5 * 3"
+WRITE #1; "&CLIP4_Y =&YY +(3*3)"
+WRITE #1; "&CLIP4_Z =&ZZ"
+WRITE #1; "&CLIP5_X =&XX + (&XX2-&XX)/5 * 4"
+WRITE #1; "&CLIP5_Y =&YY +(3*4)"
+WRITE #1; "&CLIP5_Z =&ZZ"
+WRITE #1; "&CLIP6_X =&XX + (&XX2-&XX)/5 * 5"
+WRITE #1; "&CLIP6_Y =&YY +(3*5)"
+WRITE #1; "&CLIP6_Z =&ZZ"
+WRITE #1; "&CLIP7_X =&XX + (&XX2-&XX)/5 * 5"
+WRITE #1; "&CLIP7_Y =&YY +(3*5)"
+WRITE #1; "&CLIP7_Z =&ZZ"
+WRITE #1; "&ATC_SAFEY = 3"
+
+CLOSE #1
+
+JZ,&ATC_safeclear
+
+MSGBOX(Would you like to set up bit measurement now?, YesNo, Bit Measurement Setup)
+if &msganswer = YES THEN GOSUB BitSetup
+if &msgasnwer = NO THEN GOTO EndThis
+
+BitSetup:
+SO,7,0
+VN,1
+FP,C:\sbparts\custom\ATC\ATC_FixZ_Plate.sbp
+
+EndThis:
+VN,1
+SO,7,0
+END

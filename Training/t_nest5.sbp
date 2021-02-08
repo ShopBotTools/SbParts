@@ -1,0 +1,29 @@
+'Part File name t_nest5.sbp
+'Put multiple parts where you want them, using variables and looping
+
+'It's a good idea to initialize all variables at top of file (ShopBot variables are Global and Persistent)
+  &Xoffset = 22
+  &count = 0
+
+
+LoopStart:
+
+     &count = &count + 1
+
+     J2  &Xoffset * &count, 10
+
+     FP, logo.sbp,,,,,2
+
+     IF &count * &Xoffset > 72 THEN GOTO EndofFile
+   
+  GOTO LoopStart
+
+
+EndofFile:
+
+   JH
+
+'A more elaborate version of nesting can be found in the sample files:
+'  S_nest.sbp and S_drill.sbp in the "C:\SbParts" folder.
+'See "Programmers & Developers Resources" accessed from HELP for
+'  full information on programming and customizing ShopBot

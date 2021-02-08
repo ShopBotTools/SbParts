@@ -1,0 +1,1 @@
+If you have a ShopBot Plasma Cutter, copy these files into your C:\SbParts\Custom folder.
