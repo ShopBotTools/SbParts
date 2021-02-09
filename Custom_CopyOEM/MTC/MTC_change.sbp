@@ -1,0 +1,13 @@
+'MTC_Change.sbp -- Change Tool // Update Current Tool (Make sure variables correct for this tool)
+'4/14/10 RLP Created
+  If %(22) = 1 Then End
+  
+  SA,          'Set to Absolute Mode
+  If &tool = "" Then &tool = 0
+  INPUT "Current Tool # " & &tool & ".    Change to ?"; &tool
+  If &tool = "" Then End
+  If &tool < 1 Then End
+  C9
+  
+
+End

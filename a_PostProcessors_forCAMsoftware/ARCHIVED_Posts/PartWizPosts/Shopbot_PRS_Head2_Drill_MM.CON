@@ -1,0 +1,144 @@
+;
+; Fanuc configuration file 
+;
+; History
+;
+; Who When     What
+; === ======== ========================================
+; BEM 01/04/94 Written
+; bem 21/03/00 Added DESCRIPTION and FILE_EXTENSION fields
+; JAB 15/08/00 Changed to make it run for Shopbot 
+; JAB 07/11/01 Added support for arc moves
+; GOB 03/17/04 Changed to make it run second head on ShopBot
+; GOB 03/17/04 Compensate for distance between cutting heads
+; GOB 03/18/04 Included VD command to switch to inch mode
+; GOB 11/08/04 Changed offset variable name and added s_head2 file lookup
+; GOB 11/08/04 Added SO command to header and footer for router switchon/off
+; GOB 10/09/04 Added SA, VD and "SHOPBOT ROUTER" to header
+; GOB 14/09/04 Added A axis mode switch and 4 axis display to VD command
+; GOB 19/04/05 set up for air drill
+; GOB 09/20/05 (American date) added unit system checks with error callup
+; GOB 09/22/05 1) altered variables to work with my_variables system
+; 	       2) added prevmode variable lookup to header and footer
+; GOB 10/04/05 1) Revised my_variables lookup to be custom cut 90
+;	       2) Revised unit error lookup to be custom cut 91  
+;	       3) Removed &drill variable - no longer needed with my_variables system
+; GOB 10/10/05 1) Added &drill variable - it IS needed with my_variables system
+; BSJ 06/29/07 1) Added Z move for new drill on PRS         
+;	       2) New drill numbers for Drill are 31,32,33,34
+;	       3) Added new variable for Z offset
+;	       4) Added new varible for the Output number
+;	       5) Added MS command
+;	       6) Added for second head for Drill 3 or 4
+;	       7) Added Safe Z Move
+;	       8) Added check for correct post
+;
+;
+;
+DESCRIPTION = "Shopbot PRS Head 2 AirDrill (metric)(*.sbp)"
+;
+FILE_EXTENSION = "sbp"
+;
+UNITS = MM
+;
+; Cariage return - line feed at end of each line
+;
+END_OF_LINE = "[13][10]"
+;
+; Block numbering 
+;
+LINE_NUM_START     = 0
+LINE_NUM_INCREMENT = 10
+LINE_NUM_MAXIMUM   = 999999
+;
+; Set up default formatting for variables
+;
+; Line numbering
+FORMAT = [N|@|N|1.0]
+; Spindle Speed
+FORMAT = [S|@||1.0]
+; Feed Rate
+FORMAT = [FC|#||1.1|0.0166]
+FORMAT = [FP|#||1.1|0.0166]
+; Tool moves in x,y and z
+FORMAT = [X|@||1.6]
+FORMAT = [Y|@||1.6]
+FORMAT = [Z|@||1.6]
+; Home tool positions 
+FORMAT = [XH|@||1.6]
+FORMAT = [YH|@||1.6]
+FORMAT = [ZH|@||1.6]
+; Tool Number
+FORMAT = [T|@||1.0]
+;
+; Set up program header
+;
+START = "'----------------------------------------------------------------"
+START = "'SHOPBOT AIR DRILL FILE IN INCHES"
+START = "IF %(25)=0 THEN GOTO UNIT_ERROR	'check to see software is set to standard"
+START = "C#,90				 	'Lookup offset values"
+START = "IF %(22)=1 THEN GOSUB PREVMODE		'check for move/cut mode, reset offsets if needed"
+START = "SA					'Set program to absolute coordinate mode"
+START = "&DRILL=[T]			 	'Show which drill is active"
+START = "If &DRILL<32 then Goto Wrong_Post 	'run file with correct post"
+START = "MZ, [ZH]+&my_ZinDrilloffset_T[T]	'Move Z to safe height to activate Drill"
+START = "SO,&My_DrillOutput[T],1		'Turn on Correct Drill head"
+START = "MS,[FC],[FP]				'Set move and plunge rate"
+;START = "JZ,[ZH]				'Jog Z axis to safe height"
+;START = "J2,[XH],[YH]				'Return tool to home in x and y"
+START = "'----------------------------------------------------------------"
+;
+; Program moves
+;
+FEED_RATE_Change       = "MS,[FC],[FP]"
+RAPID_RATE_MOVE        = "J4,[X]+&my_XmmDrilloffset_T[T],[Y]+&my_YmmDrilloffset_T[T],,[Z]+&my_ZmmDrilloffset_T[T]"
+FIRST_FEED_RATE_MOVE   = "M4,[X]+&my_XmmDrilloffset_T[T],[Y]+&my_YmmDrilloffset_T[T],,[Z]+&my_ZmmDrilloffset_T[T]"
+FEED_RATE_MOVE         = "M4,[X]+&my_XmmDrilloffset_T[T],[Y]+&my_YmmDrilloffset_T[T],,[Z]+&my_ZmmDrilloffset_T[T]"
+;
+; Toolchange
+;
+TOOLCHANGE = "&DRILL=[T]			'Show which drill is active"
+TOOLCHANGE = "MS,[FC],[FP]			'Set New FeedRate"
+;
+;
+; End of file
+;
+END = "'----------------------------------------------------------------"
+;END = "J2,[XH],[YH]				'Return tool to home in x and y"
+END = "SO,&my_DrillOutput[T],0				'Turn off Drill"
+END = "END"
+END = "'----------------------------------------------------------------"
+END = "'"
+END = "UNIT_ERROR:"				
+END = "C#,91					'Run file explaining unit error"
+END = "END"
+END = "PREVMODE:"
+END = "'These values must remain zero for the preview to display properly." 
+END = "&my_XmmDrilloffset_T31=0"			   
+END = "&my_YmmDrilloffset_T31=0" 
+END = "&my_ZmmDrilloffset_T31=0"    
+END = "&my_XmmDrilloffset_T32=0"	
+END = "&my_YmmDrilloffset_T32=0"
+END = "&my_ZmmDrilloffset_T32=0"	
+END = "&my_XmmDrilloffset_T33=0"		   
+END = "&my_YmmDrilloffset_T33=0" 
+END = "&my_ZmmDrilloffset_T33=0"    
+END = "&my_XmmDrilloffset_T34=0"	
+END = "&my_YmmDrilloffset_T34=0"	
+END = "&my_ZmmDrilloffset_T34=0"	
+END = "RETURN"
+END = ""
+END = "Wrong_Post:"
+END = "'You have selected a Post for the Main Head, Please choose PRS Drill Head2 Post Processor for your drill."
+END = "Pause"
+END = "END"
+
+
+
+
+
+
+; Delcam Check Sum a8f818a94ea3efd2f3ad5962b93d58cb
+;This file has been locked your ArtCAM product may not work if you edit this file
+
+

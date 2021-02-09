@@ -1,0 +1,22 @@
+'ATC - Get plate offset.
+'NJZ 11/21/2014 This file compares the ATC fixed plate location to the z zero plate.
+'6/20/17 GAB - Add test for PRS3 ATC and OPEN/CLOSED dust skirt if not PRS4
+
+'The tool will now test the homeing on all axes (C3 routine).
+Pause
+C3
+'The keypad will now open. Move the tool to your prefered Z zeroing location.  Close the keypad when complete.
+Pause
+If &ATC = 1 Then SO,3,1
+SK
+'The tool will now use the Z zeroing routine (C2) to find the bed level.
+Pause
+C2
+If &ATC = 1 Then SO,3,0
+&PlateOffset = -1 * (&HOME_TH - %(8))
+FP,C:\SbParts\Custom\ATC\ATC_write_tool_variables
+Print "PlateOffset", &PlateOffset
+'The tool will now confirm the plate offset by homeing on all axes (C3 routine).
+Pause
+C3
+End

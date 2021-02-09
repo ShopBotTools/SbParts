@@ -1,0 +1,153 @@
+'Routine to do a Simple Find of Center of Hole w/Normally-Open Contact (Assumes tip in circle and Z at correct height)
+'10/15/05 th
+
+
+
+' The following licensing information must accompany this file at all times.
+
+
+' ********** Licensing Information **********
+
+' Copyright 2001 ShopBot Tools
+'
+' We encourage ShopBot users to modify this part file to suit their own needs and have licensed it 
+' under the Creative Commons Atribution 3.0 license.  This license allows you to copy, distribute, 
+' or modify the file with certain restrictions. Any other use requires permission from ShopBot Tools.
+'
+' A simplified explanantion of this license is available at  
+' http://creativecommons.org/licenses/by/3.0/us/ 
+'
+' and the full legal code can be found at 
+' http://creativecommons.org/licenses/by/3.0/us/legalcode
+
+' We encourage you to read this legal code before modifying or distributing  this file, 
+' ESPECIALLY sections 5 and 6 that cover warranties and liability.
+'
+' If you plan on distributing your new version, you must also state in the header of your file that it
+' is a modification of a file supplied by Shopbot Tools, supply information on finding the original file, 
+' and rename the file to make it clear to the user that it is a modified version. 
+
+'
+' ********** End Licensing Information **********
+
+' User takes responsibility for the effects and outcomes of the use of this program, and ShopBot Tools assumes
+' no liability it's use.
+
+
+
+'USER >>> Put rod tip in the approximate center of a secure hole (making sure rod is grounded)
+'          where the Z height will cause the tip to just hit the circle
+
+'Initialize Variables
+     &Z_test_depth = -.130 / 2  'This is test depth that will be used when we've set Z height accurately
+     &start_X = %(1)
+     &start_Y = %(2)
+     &start_Z = %(3)
+     &startspeed_XY = %(71)
+     &startspeed_Z = %(73)
+     'Initialize some other variables that will be used
+     &leftstart = 0
+     &rightstart = 0
+     &bottomstart = 0
+     &topstart = 0
+     &Z_top_surface = 0
+ 
+     INPUT "Do you want to use the Keypad to move to your 0,0 position? Type(Y) to open Keypad and when you're done positioning hit the ESC key to continue with the routine." &showpad
+      IF &showpad = Y then GOSUB SHOWKEYPAD 
+
+&start_X = %(1)
+     &start_Y = %(2)
+     &start_Z = %(3)
+
+'Set up Speeds, etc
+     VS, .4, .4
+
+PAUSE
+'You Need To Have the Tip of Grounded Rod Located in Hole for this Centering Routine to Work !
+
+'Do Centering
+     GOSUB Center_in_XY
+
+'Clean Up
+     VS, &startspeed_XY, &startspeed_Z 
+     MZ, %(3)+.5
+     'X/Y Location Currently Displayed is Center of Hole
+     PAUSE
+&xval = %(1)
+&yval =%(2)
+&setup_units = %(25)
+
+&outname = "C:\sbparts\custom\xy_Offsets.tmp"
+	OPEN &outname FOR OUTPUT AS #1
+	WRITE #1, &xval
+	WRITE #1, &yval
+	WRITE #1, &setup_units
+close #1
+exit shopbot
+
+
+END
+
+
+'----------------------------------------------------------------------SUBS
+
+Center_in_XY:
+
+   'Move left and right to get end points of a chord; X center-point is at 1/2 this distance
+     If %(51) = 1 THEN GOTO ClosedExit
+     On Input(1,1) GOTO HitLeft
+     MX, &start_X - 2
+     GOTO FailedExit
+     HitLeft:
+        On Input(1,1)
+        &leftstart = %(1)
+        MX, &start_X
+     If %(51) = 1 THEN GOTO ClosedExit
+     On Input(1,1) GOTO HitRight
+     MX, &start_X + 2
+     GOTO FailedExit
+     HitRight:
+        On Input(1,1)
+        &rightstart = %(1)
+        MX, &start_X
+        &center_X = &leftstart + ((&rightstart - &leftstart) / 2)
+        MX, &center_X
+
+   'Move up and down to get end points of another chord; Y center-point is at 1/2 this distance
+     If %(51) = 1 THEN GOTO ClosedExit
+     On Input(1,1) GOTO HitBottom
+     MY, &start_Y - 2
+     GOTO FailedExit
+     HitBottom:
+        On Input(1,1)
+        &bottomstart = %(2)
+        MY, &start_Y
+     If %(51) = 1 THEN GOTO ClosedExit
+     On Input(1,1) GOTO HitTop
+     MY, &start_Y + 2
+     GOTO FailedExit
+     HitTop:
+        On Input(1,1)
+        &topstart = %(2)
+        MY, &start_Y
+        &center_Y = &bottomstart + ((&topstart - &bottomstart) / 2)
+        MY, &center_Y
+
+  RETURN
+
+ClosedExit:
+      'Input Already Triggered -- Exit
+      PAUSE
+      END
+
+FailedExit:
+      'Didn't seem to Make Contact in Expected Distance -- Exit
+      PAUSE
+      END
+
+SHOWKEYPAD:
+
+     SK 
+      
+RETURN
+

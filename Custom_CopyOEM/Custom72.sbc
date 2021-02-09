@@ -1,0 +1,29 @@
+'ATC - Zero Tools In Rack
+'For Use with ATC--------------------------------------------------------------------------
+'    6/26/06
+'    10/9/17 GAB - Add test for manual tool change
+'    6/1/18 GAB - Add test for 5-axis and check for preview mode
+
+&modenow = %(22)
+If &modenow = 1 Then GoTo PREVIEWMODE
+
+If &ATC = 5 Then Goto IsMTC
+If &ATC = 2 Then GoTo IsATC
+If &ATC = 1 Then GoTo IsATC
+If &ATC = 0 Then GoTo IsMTC
+
+END
+
+IsATC:
+    FP, c:\SbParts\Custom\ATC\ATC_Zzero.SBP
+    END
+
+MTC:
+    'This routine is not applicable to Manual Tool Change or 5-axis (Press any key to quit)
+	Pause
+	END
+
+PREVIEWMODE: 'Skip this routine in preview mode
+    'This routine is not available in Preview Mode (Press any key to quit)
+	Pause
+    END

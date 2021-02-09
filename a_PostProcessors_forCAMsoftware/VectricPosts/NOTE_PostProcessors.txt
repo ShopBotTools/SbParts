@@ -1,0 +1,10 @@
+PostProcessors for V-CarvePro ShopBot Edition (by Vectric) are installed in the correct location when you install V-CarvePro or updates.
+
+We include the current version of the V-CarvePro postprocessors in this folder as a backup. You will need to install or copy any postprocessor to the correct folder for it to work with the software (see the software documentation for locations).
+
+There are just two standard posts for Vectric products:
+   ShopBot_TC_inch.pp
+   ShopBot_TC_mm.pp
+
+In this folder, we also include speciality post processors for Vectric software. These postprocessors will also need to be installed in the correct location for them to function.
+  

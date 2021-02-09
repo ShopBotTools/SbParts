@@ -1,0 +1,375 @@
+'5AX_AB_CAlIBRATION.SBP 
+'Uses the Calibration block to Zero the A and B Axis and calculates offsets which are stored in my variables. 
+
+'Author: Matt Schmitz
+'Date Created: 9/8/2015
+'Edits: 
+	'9/15/15 - Matt Schmitz
+	'6/21/2017 - Dave Preiss
+
+'SET UP ---------------------------------------------------------------------------------
+
+'Basic Checks and Set-Up
+	SL 'clears user variables
+	SA, 'Absolute Mode
+	SF,0 'Temporarily Turn off limit checking (will return to whatever it's previous state was after file closes)
+	VN,0 'Temporarily deactivate limit switch functionality (")
+	SO,1,0 'spindle 1 off
+	SO,2,0 'Spindle 2 off
+	
+	&modenow = %(22) 'check if we're in Preview or Move/Cut mode
+	IF &modenow = 1 then GoTo CHANGE_MODE_EXIT 'subroutine asks user to change mode and restart
+	
+	&units = 1 'inches, by defualt
+	IF %(25) = 1 THEN &units = 25.4 'change units to MM
+
+'Variable Initializations
+	'Move and jog speeds for this routine
+	&move_speed_XYZ = .5 * &units
+	&move_speed_AB = 10 'degrees		
+	&jog_speed_XYZ = 2 * &units
+	&jog_speed_AB = 40 'degrees
+
+	'Z_zero
+	&z_plunge = 2.5 * &units
+	&back_off = .2 * &units 
+
+	'get_plate_width
+	&move_past_Y = .9 * &units
+	&move_down_top = .5 * &units 
+	
+	'find_plate_front
+	&move_past_X = 4 * &units
+
+	'get_total_length
+	&move_over_lat = 7.1 * &units
+	&jog_down_lat = 6 * &units
+	&move_down_lat = 11 * &units
+	
+	'Square_B
+	&AB_start_distance = .9 * &units 'distance away from plate to be before rotating to touch
+	&AB_check_distance = .3 * &units
+	&max_rotation = 15 'degrees
+	&over_shoot_start = .1 * &units 'amount to move past center so that upon rotation bit contacts center
+	&over_shoot_check = .05 * &units
+
+	'Square_A
+	&A_start_depth = 1 * &units 
+
+	'get_offsets
+	&finish_height = 2 * &units 'hieght to lift when finished with routine.
+	&TrgtHIT = 0 'normally closed switches
+	&Atrgt = 6 'input for a axis
+	&Btrgt = 7 'input for b axis
+
+	'Misc.
+	&plate_input = 1 'input that the plate is hooked up to
+	&plate_sysvar = 50 + &plate_input 'system variable for input 
+	&dowel_diameter = .25 * &units
+	&dowel_radius = &dowel_diameter /2
+	
+'ROUTINE --------------------------------------------------------------------------------
+
+'Go through checks to make sure user is ready to run routine: 
+	GOSUB PROMPT_START
+
+'Zero axis and set speeds
+	Z5
+	VS, &move_speed_XYZ, &move_speed_XYZ, &move_speed_AB, &move_speed_AB, &jog_speed_XYZ, &jog_speed_XYZ, &jog_speed_AB, &jog_speed_AB
+	
+'Zero Z - ends just above plate
+	GOSUB Z_Zero
+
+'Calculate Plate Width - ends just above plate and to the right
+	GOSUB Get_Plate_Width
+
+'Find the front of the plate
+	GOSUB Find_Plate_Front
+
+'Get total tool length - ends with dowel pointing in y direction, touching top of plate
+	GOSUB Get_Total_Length
+
+'Square A & B axes
+	GOSUB Square_B
+	GOSUB Square_A
+
+'Get offsets
+	GOSUB Get_Offsets
+
+'Double Check Plate Width
+	GOSUB Get_Plate_Width
+
+'move to safe height
+	JZ,&finish_height
+	J5,0,0,&finish_height,0,0
+
+'write data, tell user routine is over
+	GOSUB Write_Data
+	GOSUB Completion_Message
+
+	END
+
+'SUBROUTINES ----------------------------------------------------------------------------
+
+PROMPT_START:
+	MSGBOX (Is the alligator clip on the spindle? Is the connector plugged in?, OKCancel, Check #1)
+	IF &msganswer = Cancel THEN GOSUB TIDY_UP
+	IF &msganswer = Cancel THEN END
+	MSGBOX (Is the calibration block mounted far enough along the power stick that the x axis can move left/right at least 4 inches?, OKCancel, Check #2)
+	IF &msganswer = Cancel THEN GOSUB TIDY_UP
+	IF &msganswer = Cancel THEN END
+	MSGBOX (Are you above the calibration block with the dowel pointed straight down -- and the B-motor pointing in the positive Y-direction?, OKCancel, Check #3)
+	IF &msganswer = Cancel THEN GOSUB TIDY_UP
+	IF &msganswer = Cancel THEN END
+	RETURN
+
+Z_ZERO:
+	IF %(&plate_sysvar) = 1 THEN GOTO CLOSED_EXIT 'check if input is already closed
+	ON INPUT(&plate_input, 1) GOTO ZCONTACT 'start checking for input
+		MZ, - &Z_plunge 'make a big plunge
+		GOTO FAILED_CONTACT_EXIT 'if you make it here, you didn't contact anything
+		ZCONTACT:
+			ZZ 'zero the z axis
+	JZ &back_off 'lift up a bit to be ready for next move
+	RETURN
+
+GET_PLATE_WIDTH:
+	'left side touch: 
+	JY, &move_past_Y
+	JZ, - &move_down_top
+	IF %(&plate_sysvar) = 1 THEN GOTO CLOSED_EXIT 'check if input is already closed
+	ON INPUT(&plate_input, 1) GOTO TOP_CONTACT_L 'start checking for input
+		MY, 0 'move right to touch
+		GOTO FAILED_CONTACT_EXIT 'if you make it here, you didn't contact anything
+		TOP_CONTACT_L:
+		&left_side_top = %(2) - &dowel_radius
+	JY, %(2) + &back_off
+	JZ, &back_off
+	'right side touch: 
+	JY, - &move_past_Y
+	JZ, - &move_down_top
+	IF %(&plate_sysvar) = 1 THEN GOTO CLOSED_EXIT 'check if input is already closed
+	ON INPUT(&plate_input, 1) GOTO TOP_CONTACT_R 'start checking for input
+		MY, 0 'move left to touch
+		GOTO FAILED_CONTACT_EXIT 'if you make it here, you didn't contact anything
+		TOP_CONTACT_R:
+		&right_side_top = %(2) + &dowel_radius
+		&plate_width = &left_side_top - &right_side_top
+		VA, , - &plate_width /2 - &dowel_radius
+	JY, %(2) - &back_off
+	RETURN
+
+FIND_PLATE_FRONT:
+	JX, -&move_past_X
+	JY, 0
+	IF %(&plate_sysvar) = 1 THEN GOTO CLOSED_EXIT 'check if input is already closed
+	ON INPUT(&plate_input, 1) GOTO CONTACT_FRONT 'start checking for input
+		MX, 0 'move back to touch
+		GOTO FAILED_CONTACT_EXIT 'if you make it here, you didn't contact anything
+		CONTACT_FRONT:
+		&front = %(1) + &dowel_radius
+	JX, %(1) - &back_off
+	JZ, &back_off
+	JX, 0
+	RETURN
+
+GET_TOTAL_LENGTH:
+	J5,,- (&plate_width /2 + &move_over_lat),,-90,90 'move over and rotate
+	JZ, -&jog_down_lat 'lower z
+	IF %(&plate_sysvar) = 1 THEN GOTO CLOSED_EXIT 'check if input is already closed
+	ON INPUT(&plate_input, 1) GOTO LATERAL_TOP_CONTACT 'start checking for input
+		MZ, -&move_down_lat 'move down to touch
+		GOTO FAILED_CONTACT_EXIT 'if you make it here, you didn't contact anything
+		LATERAL_TOP_CONTACT:
+			&lat_top = %(3) - &dowel_radius
+			print &lat_top
+	&total_length = - &lat_top 'total tool length
+	print "total length", &total_length
+	RETURN
+
+SQUARE_B:
+	'First check
+		'right side
+		JZ, (&lat_top + &AB_start_distance + &dowel_radius)
+		JY, - &total_length + &over_shoot_start
+		IF %(&plate_sysvar) = 1 THEN GOTO CLOSED_EXIT 'check if input is already closed
+		ON INPUT(&plate_input, 1) GOTO B_CONTACT_RIGHT 'start checking for input
+			MB, %(5) - &max_rotation
+			GOTO FAILED_CONTACT_EXIT 'if you make it here, you didn't contact anything
+			B_CONTACT_RIGHT:
+			&ThetaB_R = 90 - %(5) 'angle of rotation
+		'left side
+		JZ, &back_off
+		J5,, &total_length - &over_shoot_start,,,-90 'rotate and move over
+		JZ, (&lat_top + &AB_start_distance + &dowel_radius)
+		IF %(&plate_sysvar) = 1 THEN GOTO CLOSED_EXIT 'check if input is already closed
+		ON INPUT(&plate_input, 1) GOTO B_CONTACT_LEFT 'start checking for input
+			MB, %(5) + &max_rotation
+			GOTO FAILED_CONTACT_EXIT 'if you make it here, you didn't contact anything
+			B_CONTACT_LEFT:
+			&ThetaB_L = 90 + %(5) 'angle of rotation
+		'print "ThetaB_L", &ThetaB_L
+		'print "ThetaB_R", &ThetaB_R
+		
+		'adjust b-axis
+		&ThetaB = (&ThetaB_L - &ThetaB_R)/2 'calculate the amount the baxis is off
+		VA,,,,,%(5)-&ThetaB, 'set the correct position of b axis
+
+	'Second check
+		'left side
+		JB, -90
+		MZ, (&lat_top + &AB_check_distance + &dowel_radius)
+		MY, &total_length - &over_shoot_check
+		IF %(&plate_sysvar) = 1 THEN GOTO CLOSED_EXIT 'check if input is already closed
+		ON INPUT(&plate_input, 1) GOTO B_CONTACT_LEFT2 'start checking for input
+			MB, %(5) + &max_rotation
+			GOTO FAILED_CONTACT_EXIT 'if you make it here, you didn't contact anything
+			B_CONTACT_LEFT2:
+			&ThetaB_L2 = 90 + %(5) 'angle of rotation
+		'right side
+		JZ, &back_off
+		J5,,- &total_length + &over_shoot_check,,,90
+		JZ, (&lat_top + &AB_check_distance + &dowel_radius)
+		IF %(&plate_sysvar) = 1 THEN GOTO CLOSED_EXIT 'check if input is already closed
+		ON INPUT(&plate_input, 1) GOTO B_CONTACT_RIGHT2 'start checking for input
+			MB, %(5) - &max_rotation
+			GOTO FAILED_CONTACT_EXIT 'if you make it here, you didn't contact anything
+			B_CONTACT_RIGHT2:
+		&ThetaB_R2 = 90 - %(5) 'angle of rotation
+		'print "ThetaB_L2", &ThetaB_L2
+		'print "ThetaB_R2", &ThetaB_R2
+		
+		'adjust b-axis
+		&ThetaB2 = (&ThetaB_L2 - &ThetaB_R2)/2 'calculate the amount the baxis is off
+		VA,,,,,%(5)-&ThetaB2, 'set the correct position of b axis
+	RETURN
+
+SQUARE_A:
+	'First check 
+		'right side (a = -90)
+		JB, 90
+		JX, &front - &dowel_radius - &AB_start_distance
+		JZ, &lat_top - &A_start_depth
+		IF %(&plate_sysvar) = 1 THEN GOTO CLOSED_EXIT 'check if input is already closed
+		ON INPUT(&plate_input, 1) GOTO A_CONTACT_RIGHT 'start checking for input
+			MA, %(4) - &max_rotation
+			GOTO FAILED_CONTACT_EXIT 'if you make it here, you didn't contact anything
+			A_CONTACT_RIGHT:
+			&ThetaA_R = -90 - %(4) 'angle of rotation
+			JA, -90
+		'left side (a = 90)
+		JZ, 0
+		J5,,&total_length - &over_shoot_start,,90,
+		JZ, &lat_top - &A_start_depth
+		IF %(&plate_sysvar) = 1 THEN GOTO CLOSED_EXIT 'check if input is already closed
+		ON INPUT(&plate_input, 1) GOTO A_CONTACT_LEFT 'start checking for input
+			MA, %(4) + &max_rotation
+			GOTO FAILED_CONTACT_EXIT 'if you make it here, you didn't contact anything
+			A_CONTACT_LEFT:
+			&ThetaA_L = %(4) - 90 'angle of rotation
+			JA, 90
+		'print "ThetaA_L", &ThetaA_L
+		'print "ThetaA_R", &ThetaA_R
+		'adjust a-axis
+		&ThetaA = (&ThetaA_L - &ThetaA_R) /2 'calculate the amount the a axis is off
+		VA,,,,%(4) - &ThetaA 'set the correct position of a axis
+	'Second Check
+		'left side
+		MX, &front - &dowel_radius - &AB_check_distance
+		MY, &total_length - &over_shoot_check
+		IF %(&plate_sysvar) = 1 THEN GOTO CLOSED_EXIT 'check if input is already closed
+		ON INPUT(&plate_input, 1) GOTO A_CONTACT_LEFT2 'start checking for input
+			MA, %(4) + &max_rotation
+			GOTO FAILED_CONTACT_EXIT 'if you make it here, you didn't contact anything
+			A_CONTACT_LEFT2:
+			&ThetaA_L2 = %(4) - 90 'angle of rotation
+			JA, 90
+		'right side
+		JZ, 0
+		J5,,- &total_length + &over_shoot_check,,-90,
+		JZ, &lat_top - &A_start_depth
+		IF %(&plate_sysvar) = 1 THEN GOTO CLOSED_EXIT 'check if input is already closed
+		ON INPUT(&plate_input, 1) GOTO A_CONTACT_RIGHT2 'start checking for input
+			MA,%(4) - &max_rotation
+			GOTO FAILED_CONTACT_EXIT 'if you make it here, you didn't contact anything
+			A_CONTACT_RIGHT2:
+			&ThetaA_R2 = -90 - %(4) 'angle of rotation
+			JA, -90
+		'print "ThetaA_L2", &ThetaA_L2
+		'print "ThetaA_R2", &ThetaA_R2
+		'adjust a-axis
+		&ThetaA2 = (&ThetaA_L2 - &ThetaA_R2) /2 'calculate the amount the a axis is off
+		VA,,,,%(4) - &ThetaA2 'set the correct position of a axis
+	RETURN
+
+GET_OFFSETS:
+	'move to safe position
+	JZ, &back_off
+	J5,0,0,&back_off,0,0
+
+	'A offset
+	JA, -70
+	ON INP(&Atrgt,&TrgtHIT) GOTO Acontact 'a prox
+		MA, - 300 'Added 200 deg here to make it to prox switch - DP
+		GOTO Failed_Contact_Exit 'if you make it here, you didn't contact anything
+		Acontact:
+			&A_offset = %(4)
+		JA, 0 'Jog to zero location
+
+	'B offset
+	ON INP(&Btrgt,&TrgtHIT) GOTO Bcontact 'b prox 
+		MB, -20
+		GOTO Failed_Contact_Exit 'if you make it here, you didn't contact anything
+		Bcontact:
+			&B_offset = %(5)
+		JB, 0 'Jog to zero location
+
+	RETURN     
+
+WRITE_DATA:
+	&tempfile = "C:\SbParts\TempVar.txt"
+	OPEN &tempfile FOR OUTPUT AS #1
+    WRITE #1; " &My_XYzeroOffsetA = "; &A_offset
+	WRITE #1; " &My_XYzeroOffsetB = "; &B_offset
+	WRITE #1; " &5AX_calibration_plate_width = "; &plate_width
+	WRITE #1; " &5AX_calibration_units = "; %(25)
+    CLOSE #1
+    PAUSE .5 
+	Shell "C:\SbParts\Custom\MyVars.exe c:\SbParts\TempVar.txt"
+	RETURN
+
+COMPLETION_MESSAGE:	
+	'PRINT "&My_XYzeroOffsetA = ",&A_offset 
+	'PRINT "&My_XYzeroOffsetB = ",&B_offset 
+	'PRINT "&5AX_calibration_plate_width = ", &plate_width 
+	'PRINT "&5AX_calibration_units = ", %(25)
+
+	'print message
+	MSGBOX (The A and B Axis are now calibrated. Offsets are stored in C:\SbParts\Custom\my_variables.sbc, OKOnly, Calibration Complete)
+	RETURN
+
+TIDY_UP:
+	'wraps up any loose ends before exiting/completion of program
+	ON INPUT(&3zero_input,1) 'clear input switch
+	RETURN
+
+CHANGE_MODE_EXIT:
+	'exit for if user is in preview mode
+	GOSUB TIDY_UP 
+    'You are in Preview mode - please switch to Move/Cut mode and retry.
+	PAUSE 
+	END	
+
+CLOSED_EXIT:
+	ON INPUT(&3zero_input,1) 'turn off switch check
+	GOSUB TIDY_UP
+	'Input is already trigered - Exiting
+	PAUSE
+	END
+
+FAILED_CONTACT_EXIT:
+	GOSUB TIDY_UP
+	'Didn't make contact in expected distance - Exiting
+	PAUSE
+	END
+

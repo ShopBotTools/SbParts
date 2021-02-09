@@ -1,0 +1,23 @@
+[DeskProto Machine]
+Version = 6.1
+Name = ShopBot Inch Y-Parallel Indexing - 2016
+PostProcessor = Shopbot Inch Y-Parallel Rotation - 2016
+WorkingAreaXSize = 25400.000000
+WorkingAreaYSize = 25400.000000
+WorkingAreaZSize = 2540.000000
+ColletRadius = 25.400000
+MinimumFeedrate = 0.000000
+DefaultFeedrate = 3.000000
+MaximumFeedrate = 30.000000
+MillingTimeCorrectionFactor = 1.500000
+MinimumSpindlespeed = 10000
+DefaultSpindlespeed = 18000
+MaximumSpindlespeed = 24000
+NumberOfTools = 1
+HasRotationAxis = 1
+AxisCentreLevel = 248.920000
+RotationAxisExceeds360 = 1
+HasAutomatic5thAxis = 0
+Has5thAxis = 0
+Dist5thTo4thAxis = 0.000000
+OptimizeCurvesAtConstantZ = 1

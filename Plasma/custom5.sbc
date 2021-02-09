@@ -1,0 +1,10 @@
+'TORCH OFF ROUTINE
+'5/04
+'------------------------------------------------------------
+If %(22) = 1 THEN END     'Don't use if in preview
+
+     VH,0      'Torch height control OFF
+     SO,1,0    'Open torch on relay and turn torch OFF
+     JZ,1.5    'Safe Z height (Height to clear any obstruction)	
+  END 
+ 

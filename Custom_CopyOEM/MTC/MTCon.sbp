@@ -1,0 +1,64 @@
+'Spindle ON
+'Turn on Spindle/Router or Drill for MTC
+
+If %(22) = 1 Then End 'Routine not needed for Preview Display
+&CZ = %(3)
+GoSub WarnMoveZ
+
+SO,4,1
+
+
+If &tool > 19 Then GoTo Spindle2
+Spindle1:
+	SO,1,1	
+GoTo PressStart
+
+Spindle2:
+If &tool > 29 Then GoTo IsDrill1
+	SO,2,1	
+GoTo PressStart
+
+IsDrill1:
+If &tool > 39 Then GoTo IsDrill2
+	SO,5,1									
+GoTo PressStart	
+
+IsDrill2:
+If &tool > 49 Then GoTo IsDrill3
+	
+	If &DrillType = 0 Then SO,6,1
+	
+	If &DrillType = 1 Then SO,7,1
+GoTo PressStart	
+
+IsDrill3:
+If &tool > 59 Then GoTo IsDrill4
+	If &DrillType = 0 Then SO,7,1									
+GoTo PressStart	
+
+
+IsDrill4:
+If &tool > 69 Then GoTo DTSpindle
+	If &DrillType = 0 Then SO,8,1									
+GoTo PressStart
+
+DTSpindle:
+	SO,1,1	
+GoTo PressStart
+
+
+PressStart:
+
+
+
+End
+
+
+'Does a Wiggle of the Z to Warn about Manual Tool Change
+WarnMoveZ:
+
+	'MZ,%(3) + .05
+	'MZ,%(3) - .05
+	'MZ,%(3)
+	Return
+	

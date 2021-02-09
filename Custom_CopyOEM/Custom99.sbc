@@ -1,0 +1,31 @@
+'[JH] JOG HOME ... see notes in file regarding this example
+'   [MH] MOVE HOME is built into the software. [JH] is implemented as a Custom
+'   Cut and illustrates the usefullness of the Custom Cut system for setting up
+'   your own special commands.
+'   7/30/04th
+'-----------------------------------------------------------------------------
+SA
+&num_Axes = %(27)                     'Get system variable for number of axes in use
+IF &num_Axes > 3.0 THEN GOTO Z_and_Acc
+
+Just_Z:
+  &Safe_Z = %(28)                     'Get the current safe_Z height from the system
+  IF %(3) => &Safe_Z THEN GOTO Cont_1 'Skip pull-up if above
+  JZ &Safe_Z
+ Cont_1:
+  J2 0,0
+END
+
+Z_and_Acc:
+  &Safe_Z = %(28)                     'Get the current safe_Z height from the system
+  &Safe_A = %(29)                     'Get the current safe_A height from the system
+  IF %(3) => &Safe_Z THEN GOTO Cont_2 'Skip pull-up if above
+  JZ &Safe_Z
+ Cont_2:
+  IF %(4) => &Safe_A THEN GOTO Cont_3 'Skip pull-up if above
+  JA &Safe_A
+ Cont_3:
+  J2 0,0
+END
+
+'-----------------------------------------------------------------------------

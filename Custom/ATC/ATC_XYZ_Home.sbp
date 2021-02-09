@@ -1,0 +1,262 @@
+'XYZERO.SBP -- Example File showing how to Zero XY Axes with Proximity Switches
+'Copyright 1998-2006. ShopBot Tools, Inc.
+'T.Hall 12/98,7/00,5/01,4/04,7/05
+'B.Young 9/05, 4/06
+'G.Bergfors 5/06 Modified for ATC to include setting Table Base Coordinates correctly
+'           5/06 Added Custom cuts for reading variable files and changing the speed settings
+'           7/7/06 Added tests for not toolholder and zero tool number.
+'Ryan Patterson	11/21/2014 Added &maxdepth variable.
+'User takes responsibility for the effects and outcomes of the use of this program.
+'
+'
+'Set up Switch Numbers
+
+&X_Prox = 2
+&Y_Prox = 3
+&Z_Prox = 5
+
+&X_State = 0
+&Y_State = 0
+&Z_State = 0
+
+
+
+'Determine whether we are in Preview mode or Move/Cut mode
+    &modenow = %(22)
+    If &modenow = 1 Then GoSub Changemode
+
+    C#,89            'Read ATC_Variables and ATC_Tool_Variables
+
+'If &ToolIN is zero tool then test to make sure it is really empty
+    If &ToolIN = 0 Then GoTo ZeroToolIN
+
+'Check to make sure there is a tool holder properly inserted into spindle
+    If %(57) = 0 Then GoTo ToolNotIN
+    If &dropped = 1 Then &dropped = 0     
+
+  ZeroTool:
+    C#,90            'Load the custom variables file from Custom Cut 90   
+
+'    FP, &ATC_Writer
+    &zOffset = 0
+    'Get Speed Limits
+    If %(25) = 0 Then GoSub GetInchSpeedLimits
+    If %(25) = 1 Then GoSub GetMetricSpeedLimits
+
+    &SCALE = 1
+
+    If &my_units <> %(25) Then GoSub Changeunits
+    &X_dist = (&my_XYzeroOffsetX * &SCALE)
+    &Y_dist = (&my_XYzeroOffsetY * &SCALE)
+
+    &start_XYmove_Speed = %(71)
+    &start_XYjog_Speed = %(76)
+    &start_Zmove_speed = %(73)
+    &start_Zjog_speed = %(78)
+
+    &XYapproach_Speed = &start_XYmove_Speed
+    &XYtempJog_Speed = &start_XYjog_Speed
+    &Zapproach_Speed = &start_Zmove_Speed
+    &ZtempJog_Speed = &start_Zjog_Speed
+    If &XYapproach_Speed > &TopXY_ApproachSpeed Then &XYapproach_Speed = &TopXY_ApproachSpeed
+    If &XYtempJog_Speed > &TopXY_JogSpeed Then &XYtempJog_Speed = &TopXY_JogSpeed
+    If &Zapproach_Speed > &TopZ_ApproachSpeed Then &Zapproach_Speed = &TopZ_ApproachSpeed
+    If &ZtempJog_Speed > &TopZ_JogSpeed Then &ZtempJog_Speed = &TopZ_JogSpeed
+
+    VS, &XYapproach_Speed,&Zapproach_Speed,,,&XYtempJog_Speed,&ZtempJog_Speed         '... and assign slower speeds
+
+    If &ToolIN=0 Then &home_th = &Tool0_Z
+    If &ToolIN=1 Then &home_th = &Tool1_Z
+    If &ToolIN=2 Then &home_th = &Tool2_Z
+    If &ToolIN=3 Then &home_th = &Tool3_Z
+    If &ToolIN=4 Then &home_th = &Tool4_Z
+    If &ToolIN=5 Then &home_th = &Tool5_Z
+    If &ToolIN=6 Then &home_th = &Tool6_Z
+    If &ToolIN=7 Then &home_th = &Tool7_Z
+    If &ToolIN=8 Then &home_th = &Tool8_Z
+	If &ToolIN=9 Then &home_th = &Tool9_Z
+	If &ToolIN=10 Then &home_th = &Tool10_Z
+	If &ToolIN=11 Then &home_th = &Tool11_Z
+	If &ToolIN=12 Then &home_th = &Tool12_Z
+	
+    &prox_statUS = %(52)
+    If &prox_statUS = &X_State Then GoSub Getoffprox 'Check status of input #2
+
+    &prox_statUS = %(53)
+    If &prox_statUS = &X_State Then GoSub Getoffprox  'Check status of input #3
+
+    &prox_statUS = %(55)
+    If &prox_statUS = &X_State Then GoSub Getoffprox 'Check status of input #5
+       
+'Initialize stuff
+    SA     	'Set tool to Absolute mode
+
+'Limits are deactivated here, automatically reset to original state when file ends 
+    VN, 0                    'Deactivate the limit switch functionality on input #3
+    SF, 0                    'Deactivate software limits
+
+'Start Homing in the Z Axis for Table Base ONLY
+   'First set the contact switch action ... 
+    ON INP(&Z_Prox,&Z_State) GoSub ZCONTACT 'this is where we'll go on contact with switch
+      JZ, ((-1)*&big_move)     'Then start the move in Z (just a big negative number ... assumes we'll hit prox switch)
+    
+	JZ, &ATC_safeclear
+ 
+'Start Homing in the Y Axis
+   'First set the contact switch action ... 
+    ON INP(&Y_Prox,&Y_State) GoSub YCONTACT 'this is where we'll go on contact with switch
+
+   'Then start the move in Y (just a big negative number ... assumes we'll hit prox switch) 
+    JY, &big_move
+    
+  ' We return here after handling Y homing
+  ' ... and reset speeds
+
+ 'Start Homing in the X axis
+  'First set the contact switch action ... 
+   ON INP(&X_Prox,&X_State) GoSub Xcontact   'this is where we'll go on contact with switch
+
+  'Then start the move in X (just a big negative number ... assumes we'll hit prox switch)
+ 
+   JY,&Y_dist + .25 'To avoid hitting tool holder
+   JX, &big_move
+
+  ' ... we return here after handling X homing
+            
+
+'Write all updated variables.
+   FP, &ATC_Writer
+
+'Tool is now Zeroed in X and Y Axis.
+   PAUSE 2
+' Removed per Ryan Patterson 171106
+ '  VN, 1                    'Activate the limit switch functionality on input #3
+   VS,&start_XYmove_Speed,&start_Zmove_speed,,,&start_XYjog_Speed,&start_Zjog_speed
+	 M2,0,0
+
+	 
+	&TL = &HOME_TH + &PlateOffset + &MaxDepth
+	VL,,,,,&TL
+	
+   End 	'This END statement causes the program to end here without
+            '  dropping through to subroutines
+
+
+'SUBROUTINES ---------------------------------------------------------------------------
+Xcontact:
+ 'This is our subroutine for action on hitting the switch
+   'We hit the limit switch! 
+     ON INP(&X_Prox,&X_State)                 'Set switch to nothing to prevent secondary trigger
+     VA,&X_dist                 'Set approx position
+     PAUSE .2
+     JX, %(1) + 2                'Move back out for another pass
+     ON INP(2,0) GoTo Xagain
+     MX, &small_move
+     End
+  Xagain:
+     ON INP(&X_Prox,&X_State)                 'Set switch to nothing to prevent secondary trigger
+     VA,&X_dist,,,,,0           'Set real position
+     PAUSE .2
+     JX, 0                       'Jog X to park position (*could put another location here)
+'X Axis now zeroed ...
+     PAUSE .2
+ Return                          'This RETURNs us to the next main file line
+
+Ycontact:
+ 'This is our subroutine for action on hitting the switch
+   'We hit the limit switch! 
+     ON INP(&Y_Prox,&Y_State)                 'Set switch to nothing to prevent secondary trigger
+     VA,,&Y_dist                 'Set position
+     PAUSE .2
+     JY, %(2) + 2                'Move back out for another pass
+     ON INP(3,0) GoTo Yagain
+     MY, &small_move
+'     END
+  Yagain:
+     ON INP(&Y_Prox,&Y_State)                       'Set switch to nothing to prevent secondary trigger
+     VA,,&Y_dist,,,,,0                 'Set real position
+     PAUSE .2
+     
+     JY, 0                             'Jog Y to park position (*could put another location here)
+'Y Axis now zeroed ...
+     PAUSE .2
+ Return                                'This RETURNs us to the next main file line
+ 		                           'interrupted by the switch
+
+Zcontact:
+ 'This is our subroutine for action on hitting the switch
+   'We hit the limit switch! 
+     ON INP(&Z_Prox,&Z_State)                       'Set switch to nothing to prevent secondary trigger
+     PAUSE .2
+     JZ, %(3)-&move_off_Zswitch         'Move back out for another pass
+     ON INP(5,0) GoTo Zagain
+     MZ, %(3)-&small_move
+     End
+  Zagain:
+     ON INP(&Z_Prox,&Z_State)                                         'Set switch to nothing to prevent secondary trigger
+     VA,,,(-1)*&home_th-&PlateOffset,,,,,&home_th+&PlateOffset   'Set real position
+     MZ, %(3) - &move_off_Zswitch  
+	&ATC_safeclear = %(3)                                    'Clear the Prox Switch
+     PAUSE .2
+'Z Axis now zeroed ...
+     PAUSE .2
+ Return                                'This RETURNs us to the next main file line
+ 		                           'interrupted by the switch
+
+Changemode:
+'Tool won't home in Preview Mode. Quit and change Move/Cut mode ...
+    PAUSE 
+ End              'Exit program now
+
+Getoffprox:
+'Use Arrow Keys to move Off of Prox Switch (ESC when Clear)
+    PAUSE
+    SK    
+ Return
+
+Changeunits:
+'You are using a different unit system (inches/millimeters) than you used when this program was set up. Do you want to change the settings?
+   PAUSE
+   If %(25) = 1 Then &SCALE = 25.4
+   If %(25) = 0 Then &SCALE = 0.03937
+ Return
+
+ToolNotIN:
+    'Tool Holder Not in spindle! Resetting values for zero tool.
+    PAUSE
+    &ToolIN = 0
+    &dropped = 1
+ GoTo ZeroTool
+
+ZeroToolIn:
+  'Test to make sure tool holder is not in spindle
+    If %(57) = 0 Then GoTo ZeroTool   'Goto back to zeroing skipping INPUT test
+  'Prompt user for proper tool number if one is indeed in place when tool number is zero  
+    INPUT "Enter the number of the tool in the spindle" &ToolIN
+  'Make sure dropped is set to 0 now that it is confirmed that a tool holder is in place     
+    If &dropped = 1 Then &dropped = 0 
+ GoTo ZeroTool
+
+
+GetInchSpeedLimits:
+    &TopXY_ApproachSpeed = 1.0
+    &TopXY_JogSpeed = 4.0
+    &TopZ_ApproachSpeed = 0.5
+    &TopZ_JogSpeed = 1.0
+    &move_off_Zswitch = .25
+    &big_move = -200
+    &small_move = -15
+
+ Return
+
+GetMetricSpeedLimits:
+    &TopXY_ApproachSpeed = 25.4
+    &TopXY_JogSpeed = 101.6
+    &TopZ_ApproachSpeed = 12.5
+    &TopZ_JogSpeed = 101.6
+    &move_off_Zswitch = 12
+    &big_move = -5000
+    &small_move = -250
+
+ Return
+

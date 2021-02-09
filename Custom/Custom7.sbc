@@ -1,0 +1,31 @@
+'Spindle Off
+'6/20/17 GAB - Add test for All ATC - 1 for PRS3 and earlier and 2 for PRS4 config
+'6/1/18 GAB - Add test for 5-axis - 5 to turn off spindle
+
+&modenow = %(22)
+If &modenow = 1 Then GoTo PREVIEWMODE
+
+If &ATC = 5 Then Goto Is5AX
+If &ATC = 2 Then GoTo IsATC
+If &ATC = 1 Then GoTo IsATC
+If &ATC = 0 Then GoTo IsMTC
+
+END
+
+IsMTC:
+	FP,C:\SbParts\Custom\MTC\MTCoff.sbp
+	GoTo IsDone
+
+IsATC:
+	FP,C:\SbParts\Custom\ATC\ATCoff.sbp
+	GoTo IsDone
+
+Is5AX:
+	SO,1,0
+	GoTo IsDone
+
+PREVIEWMODE: 'Skip this routine in preview mode
+    END
+
+IsDone:
+    END

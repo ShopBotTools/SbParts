@@ -1,0 +1,4 @@
+'ATC_restore_settings.sbp -- Restore settings in effect at ATC call
+
+  '    VS,&start_XYmove_Speed,&start_Zmove_speed,,,&start_XYjog_Speed,&start_Zjog_speed
+      SF,1   'File limit checking turned back ON

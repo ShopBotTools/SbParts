@@ -1,0 +1,37 @@
+'Home X & Y Axes using Prox Switches
+'--------------------------------------------------------------------------
+
+'---------------------------------------------------------------------------
+' ... executing Custom Cut File
+'6/1/18 GAB - Add test for 5-axis - 5 home using 5AX...Zero
+
+&modenow = %(22)
+If &modenow = 1 Then GoTo PREVIEWMODE
+
+C#,90
+
+If &ATC = 5 Then Goto Is5AX
+If &ATC = 2 Then GoTo IsATC
+If &ATC = 1 Then GoTo IsATC
+If &ATC = 0 Then GoTo IsMTC
+
+END
+
+IsMTC:
+	FP,C:\SbParts\XYzero.sbp
+	GoTo IsDone
+
+IsATC:
+	FP,C:\SbParts\Custom\ATC\ATC_XYZ_Home.sbp
+	GoTo IsDone
+
+Is5AX:
+    FP, C:\SbParts\Five Axis\5AX_XYZAB Zero.sbp
+	GoTo IsDone
+
+PREVIEWMODE: 'Skip this routine in preview mode
+    'This routine is not available in Prewiew Mode (Press any key to quit)
+	Pause
+	END
+
+IsDone:
