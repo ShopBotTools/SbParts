@@ -1,9 +1,0 @@
-
- 'Use Arrow Keys to move Tool above Fixed Plate (ESC when there)
-    PAUSE
-    SK    
-&ATC_zZeroX = %(1)		'Set Fixed zero plate location in X
-&ATC_zZeroY = %(2)		'Set Fixed zero plate location in y
-
-FP, ATC_write_tool_variables.sbp
-

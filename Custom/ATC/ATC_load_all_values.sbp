@@ -1,9 +1,0 @@
-'ATC_load_all_values.sbp -- Load/Update All Variables and Values
-
-    C#,90             'Load the my_variables file from with Custom Cut 90
-    C#,89             'Read variables from ATC_Variables and ATC_Tool_Variables
-
-'**********************************************************************************
-'Moved speed setting to after first jog move in file
-'    C#,88             'Save current speeds and set to ATC speeds
-'**********************************************************************************

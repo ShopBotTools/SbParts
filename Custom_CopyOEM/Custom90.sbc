@@ -1,5 +1,0 @@
-'
-'Calls My_Variables file to set user variables from a predefined list
-'--------------------------------------------------------------------------
-FP, c:\SbParts\Custom\My_variables.sbc
-'---------------------------------------------------------------------------
