@@ -1,6 +1,7 @@
 'ATC_Warmup.SBP -- Example File showing how to warm up an ATC spindle after homing it.
 'Copyright 2006. ShopBot Tools, Inc.
 'G.Bergfors 12/06 initial version for Newman Whitmire 
+'6/20/17 GAB - Updated to use [TR] command and RPM controller
 '
 'User takes responsibility for the effects and outcomes of the use of this program.
 '
@@ -10,25 +11,19 @@ C3,      'Home ATC
 'Warm-up
 
 '  Run at 50%
-SO, 5,0
-SO, 6,0
-SO, 7,0
+TR,12000
 
 C6,      'Start spindle
 
 Pause 120  'Pause 2 minutes
 
 '  Run at 75%
-SO, 5,0
-SO, 6,0
-SO, 7,1
+TR,18000
 
 Pause 120  'Pause 2 minutes
 
 'Run at 100%
-SO, 5,1
-SO, 6,1
-SO, 7,1
+TR,24000
 
 Pause 60   'Pause 1 minute
 

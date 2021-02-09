@@ -1,18 +1,22 @@
-'(file use only; MTC/ATC)
+'
 'ATC Tool Change ... for calling from within Part File
 'For Use with ATC
 '6/26/06
+'6/4/18 GAB - Added check for 5-axis and preview mode
 
+&modenow = %(22)
+If &modenow = 1 Then GoTo PREVIEWMODE
 
+If &ATC = 5 Then Goto Is5AX
+If &ATC = 2 Then GoTo IsATC
 If &ATC = 1 Then GoTo IsATC
 If &ATC = 0 Then GoTo IsMTC
-If &ATC = 3 Then GoTo IsATC
-If &ATC = 4 Then GoTo IsATC
+
+END
 
 IsMTC:
 	FP,C:\SbParts\Custom\MTC\MTC.sbp
 	GoTo IsDone
-
 
 IsATC:
 	&modenow = %(22)
@@ -21,6 +25,11 @@ IsATC:
 	FP,C:\SBPARTS\custom\ATC\ATC.sbp
 	GoTo IsDone
 
-CHANGEMODE:
+Is5AX: 'This routine is not applicable to 5-axis
+	GoTo IsDone
+
+PREVIEWMODE: 'Skip this routine in preview mode
+    END
 
 IsDone:
+    END

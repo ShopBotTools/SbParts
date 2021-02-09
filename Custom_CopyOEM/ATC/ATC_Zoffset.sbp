@@ -1,8 +1,8 @@
 'ATC Offset calculator v1.080405
 '    Gordon Bergfors, ShopBot Tools, Inc.
-'     All Rights Reserved, Copyright 2002-2005
+'     All Rights Reserved, Copyright 2002-2017
 '	Speed changes on touch off lines 50 and 54 BHM 20Oct06  
-'
+'   10/18/17 GAB Combine for PRS and PRS4 ATCs
 'Determine whether we are in Preview mode or Move/Cut mode
    &modenow = %(22)
    IF &modenow = 1 THEN GOSUB Changemode
@@ -10,24 +10,23 @@
     SA,     
     SW, 0         'Deactivate Warning duration
     SF, 0         'Deactivate software limits
-'    SC, 0         'Run in single step mode
 
     SO,1,0        'Make sure spindle is not running
 
 'Initialize
 if %(25) = 1 Then Goto METRICUNITS
     &ZUP = 0.5    'Distance off table to pull up
-	&bigZ = 16
-	&jogZset = 1
-	&moveZset = .75
-	&zClearMove = .50
+	  &bigZ = 16
+	  &jogZset = 1
+	  &moveZset = .75
+	  &zClearMove = .50
 	Goto FINISHINIT
 METRICUNITS:
     &ZUP = 12    'Distance off table to pull up
-	&bigZ = 400
-	&jogZset = 25
-	&moveZset = 19
-	&zClearMove = 12
+	  &bigZ = 400
+	  &jogZset = 25
+	  &moveZset = 19
+	  &zClearMove = 12
 
 FINISHINIT:
     &th_z = 0     'Initialize to zero
@@ -42,7 +41,7 @@ FINISHINIT:
 
 ' set the location to move to before second contact
    
-    VA,,,%(3) + %(8),,,,,0             'Return to Table Base Coordinate system
+    VA,,,%(3)+%(8),,,,,0             'Return to Table Base Coordinate system
 
     IF &ToolIN = 1 THEN &th_z = &Tool1_Z
     IF &ToolIN = 2 THEN &th_z = &Tool2_Z
@@ -57,18 +56,16 @@ FINISHINIT:
 
 'Place ground clip on bit and zero plate under - press ENTER to continue
     PAUSE
-
 'Set the contact switch action ... Plate NOW SET FOR Input Switch #1
     ON INP(1,1) GOSUB CONTACT1
       JS,,&jogZset	   		 'Change jog speed to .75
 
-	JZ, -&bigZ
+	  JZ, -&bigZ
 
     ON INP(1,1) GOSUB CONTACT2 'this is where we'll go on contact with plate
-
       MS,,&moveZset	    	 'Change move speed to .75
 
-	MZ, -&bigZ
+	  MZ, -&bigZ
 
 'We're done with all moves so reset speeds
     VS,&start_XYmove_Speed,&start_Zmove_speed,,,&start_XYjog_Speed,&start_Zjog_speed         '... and assign slower speeds
@@ -105,11 +102,6 @@ CONTACT2:
  RETURN         'Technically this RETURNs us to the next file line after the
                 '   move that was interrupted by the switch ... eg. the MZ
                 '   and we will then encounter the END and leave the file.
-
-CONTACTZ:
-  ON INP(1,0)
-  JZ,%(3)-&zClearMove
- RETURN
 
 Getoffprox:
    'Use Arrow Keys to move Off of Prox Switch (ESC when Clear)

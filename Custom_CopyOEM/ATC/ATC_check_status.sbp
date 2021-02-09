@@ -81,60 +81,71 @@ ck_tool0:
   &zOffset = %(8) - &Tool0_Z        'Ryan added this
   &test_th = &Tool0_Z + &zOffset                                 'Expected TBC Offset for Z
 RETURN
-ck_tool1:
 
+ck_tool1:
   &zOffset = %(8) - &Tool1_Z        'Ryan added this
   &test_th= &Tool1_Z + &zOffset                                 'Expected TBC Offset for Z
 RETURN
 ck_tool2:
-
   &zOffset = %(8) - &Tool2_Z        'Ryan added this
   &test_th= &Tool2_Z + &zOffset                                 'Expected TBC Offset for Z
+
 RETURN
 ck_tool3:
   &zOffset = %(8) - &Tool3_Z        'Ryan added this
   &test_th= &Tool3_Z + &zOffset                                 'Expected TBC Offset for Z
 RETURN
+
 ck_tool4:
   &zOffset = %(8) - &Tool4_Z        'Ryan added this
   &test_th= &Tool4_Z + &zOffset                                 'Expected TBC Offset for Z
 RETURN
+
 ck_tool5:
   &zOffset = %(8) - &Tool5_Z        'Ryan added this
   &test_th= &Tool5_Z + &zOffset                                 'Expected TBC Offset for Z
 RETURN
+
 ck_tool6:
   &zOffset = %(8) - &Tool6_Z        'Ryan added this
   &test_th= &Tool6_Z + &zOffset                                 'Expected TBC Offset for Z
 RETURN
+
 ck_tool7:
   &zOffset = %(8) - &Tool7_Z        'Ryan added this
   &test_th= &Tool7_Z + &zOffset                                 'Expected TBC Offset for Z
 RETURN
+
 ck_tool8:
   &zOffset = %(8) - &Tool8_Z        'Ryan added this
   &test_th= &Tool8_Z + &zOffset                                 'Expected TBC Offset for Z
 RETURN
+
 ck_tool9:
   &zOffset = %(8) - &Tool9_Z        'Ryan added this
   &test_th= &Tool9_Z + &zOffset                                 'Expected TBC Offset for Z
 RETURN
+
 ck_tool10:
   &zOffset = %(8) - &Tool10_Z        'Ryan added this
   &test_th= &Tool10_Z + &zOffset                                 'Expected TBC Offset for Z
 RETURN
+
 ck_tool11:
   &zOffset = %(8) - &Tool11_Z        'Ryan added this
   &test_th= &Tool11_Z + &zOffset                                 'Expected TBC Offset for Z
 RETURN
+
 ck_tool12:
   &zOffset = %(8) - &Tool12_Z        'Ryan added this
   &test_th= &Tool12_Z + &zOffset                                 'Expected TBC Offset for Z
 RETURN
+
 ck_tool13:
   &zOffset = %(8) - &Tool13_Z        'Ryan added this
   &test_th= &Tool13_Z + &zOffset                                 'Expected TBC Offset for Z
 RETURN
+
 ck_tool14:
   &zOffset = %(8) - &Tool14_Z        'Ryan added this
   &test_th= &Tool14_Z + &zOffset                                 'Expected TBC Offset for Z

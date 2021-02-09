@@ -1,8 +1,9 @@
 'Spindle ON
 'For Use with ATC
 '6/26/06
-   &modenow = %(22)
-   If &modenow = 1 Then GoTo CHANGEMODE
+
+&modenow = %(22)
+If &modenow = 1 Then GoTo PREVIEWMODE
 
 If %(58) = 1 Then GoTo CHUCKOPEN
 
@@ -27,5 +28,5 @@ CHUCKOPEN:
   PAUSE
 End
 
-CHANGEMODE:
-End
+PREVIEWMODE: 'Skip this routine in preview mode
+  END

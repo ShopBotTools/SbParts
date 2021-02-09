@@ -1,24 +1,35 @@
 'ATCZZ.sbp --ATC Homing program for calculating the Z height of each tool
+' 5/5/2017 DJP - Commented out dust skirt actuation, added &SafeX
+' 10/18/17 GAB - Added test for ATC type 1 for dust skirt open
+'                Combined to work with both PRS and PRS4 ATC
+' 6/20/17 GAB - Removed SC command on line 8, command not supported
+' 3/6/18 GAB - Add test for PRS4 before first plunge and if not, open dust skirt and
+'               prompt to add clip to bit
+'            - Add test for PRS4 before END and if not, close dust skirt and prompt
+'               to remove clip from bit
 
   SA,           'Set to Absolute Mode
   SW, 0         'Deactivate Warning duration
-  SC, 0         'Run in single step mode
-
+ 
   SO,1,0        'Make sure spindle is not running
 
 If %(25) = 1 Then GoTo METRICUNITS
-	    &bigZclear = 24
+    &bigZclear = 24
 		&bigZplunge = -18
-		&ZUP = .5    'Distance off table to pull up
+		If &ATC = 1 Then &ZUP = 3    'Distance off table to pull up
+    If &ATC = 2 Then &ZUP = 2
 		&zZeroMoveSpeed = .75
 		&ZforVA = -0.5
+		&SafeX = 12
     GoTo ZZERO_INITVARS
 METRICUNITS:
-        &bigZclear = 610
+    &bigZclear = 610
 		&bigZplunge = -460
-		&ZUP = 12    'Distance off table to pull up
+		If &ATC = 1 Then &ZUP = 76    'Distance off table to pull up
+    If &ATC = 2 Then &ZUP = 104
 		&zZeroMoveSpeed = 19
 		&ZforVA = -12.7
+		&SafeX = 300
 'Initialize Variables
 ZZERO_INITVARS:
     'Initialize
@@ -35,24 +46,24 @@ TOP:
   VN, 0        'Turn limit switch OFF
 
   'Calibrate using Prox switch on Z
-  If &ATC = 4 Then GoSub EnterSafeDTMATC
-  ON INP(3,1) GoSub CONTACTZ1
+  ON INP(5,0) GoSub CONTACTZ1
     MZ, &bigZclear
 
-  ON INP(3,1) GoSub CONTACTZ2
+  ON INP(5,0) GoSub CONTACTZ2
     MZ, &bigZclear
-  If &ATC = 4 Then GoSub LeaveSafeDTMATC
 
-  VN, 0        'Turn limit switch OFF
+  VN, 1        'Turn limit switch ON
 
   VA,,,&ZforVA,,,,,0
-  J2, &sx , &ATC_zZeroY - %(7)
-  J2, &ATC_zZeroX - %(6), &ATC_zZeroY - %(7)       'XY Location for Z Zeroing (Enter X&Y Location of Fixed Zero plate)
-  SO,3,1
-  So,7,1
-  'Press ENTER when clip is on bit shank and ready to zero
-  PAUSE .5
+  If &ATC = 1 Then JX,&sx
+  JY,&ATC_zZeroY-%(7)         'Y Location for Z Zeroing using Fixed Zero plate
+  JX,&ATC_zZeroX-%(6)         'X Location for Z Zeroing using Fixed Zero plate
+  If &ATC = 2 Then GOTO START_PLUNGE 
+    SO,3,1     'Open Dust Skirt on older than PRS4 ATC
+    'Press ENTER when clip is on bit shank and ready to zero
+    PAUSE
 
+START_PLUNGE:
 'Set the contact switch action ... Plate NOW SET FOR Input Switch #1
   ON INP(1,1) GoSub CONTACT1
     MZ, &bigZplunge 
@@ -74,17 +85,20 @@ TOP:
   
   FP, &ATC_Writer
 	
-  VN, 1        'Turn limit switch ON
   
   &newZheight = &zHeight + &ZOffset
   VA,,,%(3)-&newZheight,,,,,&newZheight  'Set Z height of bit relative to table surface from Table Base Coordinates
 
- ' MX, &sx
-  SO,3,1
-  SO,7,0
+  If &ATC = 1 Then MX,&sx
+  If &ATC = 2 Then MX,%(1)-&SafeX
+
   INPUT "Do you wish to zero another cutter <Y or N>: " &gototop
   
   If &gototop = "Y" Then GoTo TOP 
+  If &ATC = 2 Then END
+    '***ZEROED! REMEMBER TO REMOVE ALLIGATOR CLIP!***
+    PAUSE
+  If &ATC = 1 Then SO,3,0
 
  End            'This END statement causes the program to end here without
                 '  dropping through to subroutine
@@ -98,8 +112,8 @@ CONTACT1:
   
   &zHeight = %(3)
   
-  
-  JZ,%(3) + &ZUP  'Pull-up SLIGHTLY ... 
+  If &ATC = 1 Then JZ,%(3)+&ZUP
+  If &ATC = 2 Then JZ, &ZforVA      'Pull-up to 0.5" under prox switch
   'Now We're Ready to Make Slow Move for Accurate Reading
   PAUSE .2
  Return
@@ -123,15 +137,3 @@ CONTACTZ2:
   MZ,%(3)+&ZforVA
   &Ztop = %(3) 
  Return
-
- EnterSafeDTMATC:
- If %(1) < 2 Then goto SkipE
- MX,%(1)-1.5
- SkipE:
- RETURN
-
- LeaveSafeDTMATC:
- If %(1) < 2 Then goto SkipL
- MX,%(1)+1.5
- SkipL:
- RETURN

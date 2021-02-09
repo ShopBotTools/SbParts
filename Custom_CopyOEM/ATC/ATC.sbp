@@ -59,36 +59,17 @@
     SF,0   ''###?? How to handle limit checking if already off by user choice??
 
     if %(25) = 1 Then Goto METRICUNITS
-		&thClearance = 0.5
+	  &thClearance = 0.5
 		&proxClearance = 0.25
 		&clipZLoc = 11
     If &ATC = 2 Then GoTo 1PRS4     'PRS-PRS3 ATCs
-	If &ATC = 3 Then GoTo 1DT 
-	If &ATC = 4 Then GoTo 1DTM
-     &ATC_clipSafe = -3   'Change - to + if tool clips are on left side
-	 &Prox_State = 0
+      &ATC_clipSafe = -3   'Change - to + if tool clips are on left side
      Goto UNITSDONE
     1PRS4:    'PRS4 ATCs
-		
 		  &ATC_clipSafe = 1.5  'Change + to - if tool clips are on left side
 		  &ATC_clipClearX = 8
 		  &ATC_clipClearY = 2.25
-		  &Prox_State = 0
      Goto UNITSDONE
-	
-	1DT: 'This is for setting if it is a standard Destop
-		
-		&ATC_clipSafe = 0
-		&Prox_State = 1
-	Goto UNITSDONE
-	
-	1DTM: 'This is for setting if it is a Max Destop
-	GoSub CheckToolBar
-		&ATC_clipSafe = 0
-		&Prox_State = 1
-	Goto UNITSDONE
-
-
 METRICUNITS:
     &thClearance = 12
 		&proxClearance = 6
@@ -97,17 +78,13 @@ METRICUNITS:
         &ATC_clipSafe = -76  'Change - to + if tool clips are on left side
      Goto UNITSDONE
     2PRS4:    'PRS4
-
       &ATC_clipSafe = 38   'Change - to + if tool clips are on left side
-	  &ATC_clipClearX = 200
-	  &ATC_clipClearY = 65	
 UNITSDONE:
     
 	  &oldtool = &ToolIN
     &prox_statUS = %(53)
-    If &ATC = 4 Then Goto Continue
-	If &prox_statUS = &Prox_State Then GoSub Getoffprox
-    Continue: 
+    If &prox_statUS = 0 Then GoSub Getoffprox
+     
     VN,0
     PAUSE .2
 	  &ATC_safeclear = (%(3) + (-1 *((%(3) + %(8)))))-&proxClearance
@@ -164,24 +141,19 @@ Position_Z:
     
 
 Droptool:
-   ' If &ATC = 3 Then GoTo DropDT
+    
     If &Tool = &ToolIN Then GoTo Finish_ToolChange 'NO NEED TO DO TOOL CHANGE
 
     If &ATC = 2 Then GoTo 3PRS4     
       'PRS-PRS3
 	    J2, &sx, &ty          'Jog to X zero and Y midpoint between tool holders
       SO,3,1        'Open Dust skirt
-	  	
-		If &ATC = 3 Then gosub Extendbar 
-		If &ATC = 4 Then gosub Extendbar 
-
       Goto Clip 
     3PRS4:    
       'PRS4 ATCs
       J2, &tx - &ATC_clipClearX , &ty  - &ATC_clipClearY  'Move inbetween clips
       JX, &sx
       JY, &ty          'Jog to X zero and Y midpoint between tool holders
-
 Clip:  
     &clipHeight = &tz - %(8)
     JZ, &clipHeight       'Jog to Z height of toolholder clip
@@ -189,22 +161,14 @@ Clip:
     MX, &tx               'Move into clip
     SO, 8,1               'Open toolholder chuck
     PAUSE 0.1
-	'If &ATC = 3 Then pause 1 
-	'If &ATC = 4 Then pause 1
-	
     MZ, %(3)+ &thClearance           'Move up to clear toolholder
     PAUSE 0.2    
-	
-	'If &ATC = 3 Then SO,7,0 
-	'If &ATC = 4 Then SO,7,0
+
     If %(58) = 0 Then GoTo bartoperror    
     SO, 8,0               'Close toolholder chuck
-
     PAUSE 0.2
 
     If %(58) = 1 Then GoTo barboterror
-	Goto ZeroToolDrop
-
       
 ZeroToolDrop:    
     &newtool = &tool      'Set new tool number
@@ -247,9 +211,6 @@ Changetool:
     &ATC_safeclear = &ATC_safeclear - %(63)
 
     JZ,&ATC_safeclear
-	
-	If &ATC = 3 Then gosub Retractbar 
-	If &ATC = 4 Then gosub Retractbar 
 
   'Skip pick up if zero tool number and leave spindle empty
     If &newtool = 0 Then GoTo Finish_ToolChange
@@ -259,15 +220,11 @@ Changetool:
       'PRS-PRS3
       J2, &tx, &ty
       SO,3,1
-	  
-	If &ATC = 3 Then gosub Extendbar 
-	If &ATC = 4 Then gosub Extendbar 
-
       GoTo CT1
     4PRS4:    'PRS4 ATCs
       JY, &ty
       JX, &tx
-  CT1:   
+  CT1:    
 	JZ, &clipHeight + (&proxClearance * 2)      'Jog Z to 1 inch over toolholder height
     SO, 8,1                  'Open toolholder chuck
     PAUSE 0.2
@@ -308,8 +265,7 @@ Finish_ToolChange:
 
 	  &TL = &th + &PlateOffset + &MaxDepth
 	  VL,,,,,&TL
-	If &ATC = 3 Then gosub Retractbar 
-	If &ATC = 4 Then gosub Retractbar 
+	
 End
 'END of ATC Main Routine =================================================================================================
 
@@ -320,7 +276,6 @@ settool0:
   &th= &Tool0_Z                    'Height of bit off table relative to top Prox
   &sy= 0                           'Safe Y position for tool change
   &sx = 3
-  'pause
   If &newtool = 0 Then GoTo Changetool 
 GoTo ZeroToolDrop
   
@@ -500,14 +455,7 @@ seteRR:
   PRINT "Error setting tool number. Any key to exit (ATC293)"
   PAUSE
   End
-
-ExtendIssue:
-	GoSub Exit_Resets
-	PRINT "Issue with the toolBar extending or retracting"
-	'Issue with the toolBar extending or retracting
-	PAUSE
-	End
-
+ 
 PreViewMode:
   End
   
@@ -526,21 +474,4 @@ Getoffprox:
 Exit_Resets:
     'Reset speeds and other stuff
      FP, C:\SBPARTS\custom\ATC\ATC_restore_settings.sbp
-Return
-
-ExtendBar:
-	SO,7,1
-	pause 1.5
-	if %(56) = 0 then goto ExtendIssue
-
-Return
-
-RetractBar:
-	SO,7,0
-	pause 1.5
-	if %(56) = 0 then goto ExtendIssue
-Return
-
-CheckToolBar:
-If %(107) = 1 then goto RetractBar
 Return

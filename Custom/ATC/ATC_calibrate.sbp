@@ -11,6 +11,8 @@
 '11/30/11 GAB, GC Changed message for next clip and truncated text. Changed location of speed reduction to
 '           occur earlier and change Jog to next toolholder to a Move. Initiated &numclips variable to "0"
 '           and added a test for nil number of clips. And, added SF,0 to turn off file limit checking.
+'5/5/17 DJP, Commented out dust skirt actuation on input 3
+'6/20/17 GAB - Added test for PRS3 ATC and Open/Close dust skirt if not PRS4
 '
 'USER >>> 	Put the calibration stylus in the collet of the spindle (making sure rod is grounded)
 ' and bit holders in each of the clip positins so that they are upside-down from their normal position...
@@ -25,7 +27,7 @@ if %(25) = 1 then GoTo METRICUNITS
 	    &ATC_holderHeight = 2.037
         &holder_radius = .75
         &stylus_dia = .25
-        &safe_lift = 1 
+        &safe_lift = 0.5 
         &newspeed_XY = .4
         &newspeed_Z = .4
 		&tableLength = 0
@@ -40,7 +42,7 @@ METRICUNITS:
         &ATC_holderHeight = 51.7398
         &holder_radius = 19.05
         &stylus_dia = 6.35
-        &safe_lift = 25.4 
+        &safe_lift = 12.7 
         &newspeed_XY = 10.16
         &newspeed_Z = 10.16
    	    &tableLength = 0
@@ -101,9 +103,8 @@ READY_TO_START:
       MZ, &zBigMove
     VN,1
 
-	'Open dust skirt
-    SO,3,1
-
+    If &ATC = 1 Then SO,3,1    'Open dust skirt
+      
 	'Insert an empty tool holder in the spindle (no collet or nut)...
     PAUSE
     '...Insert an empty tool holder upside down in the #1 clip...
@@ -244,8 +245,8 @@ TOOL_DONE:
  GoTo NEXT_HOLDER
 
 CLEANUP:
-    SO,3,0
-    
+    If &ATC = 1 Then SO,3,0
+
 	VS, &startspeed_XY, &startspeed_Z
 	
 	OPEN &ATC_Variables for OUTPUT AS #1 
