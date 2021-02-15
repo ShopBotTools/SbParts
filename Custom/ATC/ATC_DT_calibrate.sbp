@@ -7,6 +7,7 @@ if %(25) = 1 then GoTo METRICUNITS
 &TOOL_OFFSET = 3
 &SAFETY = 3
 GoTo BEGIN
+'Need to fix metric units here:
 METRICUNITS:
 &Z_UP = 64
 &TOOLBAR_LENGTH = 382
