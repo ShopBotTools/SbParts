@@ -8,6 +8,7 @@ if %(25) = 1 then GoTo METRICUNITS
 &SAFETY = 3
 GoTo BEGIN
 'Need to fix metric units here:
+'Keep at it!
 METRICUNITS:
 &Z_UP = 64
 &TOOLBAR_LENGTH = 382
