@@ -10,6 +10,7 @@
 
     &ATC_Variables = &ATC_local_data_path & "ATC_Variables.sbc"
     &ATC_Toolvar_outname = &ATC_local_data_path & "ATC_Tool_Variables.sbc"
+	&ATC_Settings = &ATC_local_data_path & "ATC_Settings.sbc"
     &ATC_Writer = &ATC_folder_path & "ATC_Write_Tool_Variables.sbp"
     &ATC_Restore_Settings = &ATC_folder_path & "ATC_restore_settings.sbp"
     &ATC_Check_Status = &ATC_folder_path & "ATC_check_status.sbp"
@@ -17,3 +18,4 @@
 
     FP, &ATC_Variables
     FP, &ATC_Toolvar_outname
+	FP, &ATC_Settings

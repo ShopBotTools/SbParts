@@ -2,7 +2,7 @@
 'For Use with ATC--------------------------------------------------------------------------
 '    6/26/06
 '    6/1/18 GAB - Add test for 5-axis and check for preview mode
-
+FP, c:\SbParts\Custom\ATC\ATC_Load_All_Values.sbp
 &modenow = %(22)
 If &modenow = 1 Then GoTo PREVIEWMODE
 

@@ -26,6 +26,22 @@
     IF &ToolIN = 6 THEN &th_z = &Tool6_Z
     IF &ToolIN = 7 THEN &th_z = &Tool7_Z
     IF &ToolIN = 8 THEN &th_z = &Tool8_Z
+	IF &ToolIN = 9 THEN &th_z = &Tool9_Z
+	IF &ToolIN = 10 THEN &th_z = &Tool10_Z
+	IF &ToolIN = 11 THEN &th_z = &Tool11_Z
+	IF &ToolIN = 12 THEN &th_z = &Tool12_Z
+	IF &ToolIN = 13 THEN &th_z = &Tool13_Z
+	IF &ToolIN = 14 THEN &th_z = &Tool14_Z
+	IF &ToolIN = 15 THEN &th_z = &Tool15_Z
+	IF &ToolIN = 16 THEN &th_z = &Tool16_Z
+	IF &ToolIN = 17 THEN &th_z = &Tool17_Z
+	IF &ToolIN = 18 THEN &th_z = &Tool18_Z
+	IF &ToolIN = 19 THEN &th_z = &Tool19_Z
+	IF &ToolIN = 20 THEN &th_z = &Tool20_Z
+	IF &ToolIN = 21 THEN &th_z = &Tool21_Z
+	IF &ToolIN = 22 THEN &th_z = &Tool22_Z
+	IF &ToolIN = 23 THEN &th_z = &Tool23_Z
+	IF &ToolIN = 24 THEN &th_z = &Tool24_Z
 
     VA,,,%(3) + %(8),,,,,0             'Return to Table Base Coordinate system
 

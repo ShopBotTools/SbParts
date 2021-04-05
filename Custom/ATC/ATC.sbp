@@ -26,8 +26,9 @@
 '5/5/17 DJP - Edited for THK Beam design
 '6/20/17 GAB - Combine PRS4 changes with current ATC to work with either setup
 '11/20/17 GAB - Move break for change to Tool0
+'3/16/21 SBO - Updates and cleanup for metric users
 ''Need to do
-''    Allow for proportion in file
+''Allow for proportion in file
 
 
 '- Setup for rotary change
@@ -49,105 +50,59 @@
 
     SA,   
 	
-	  &modenow = %(22)
+	&modenow = %(22)
 	If &modenow = 1 Then GoTo PreViewMode
 
     &oldtool=0
     &newtool=-1
 	
     FP, c:\SbParts\Custom\ATC\ATC_Load_All_Values.sbp
-    SF,0   ''###?? How to handle limit checking if already off by user choice??
+    SF,0 '###?? How to handle limit checking if already off by user choice??
 
-    if %(25) = 1 Then Goto METRICUNITS
-		&thClearance = 0.5
-		&proxClearance = 0.25
-		&clipZLoc = 11
-    If &ATC = 2 Then GoTo 1PRS4     'PRS-PRS3 ATCs
-	If &ATC = 3 Then GoTo 1DT 
-	If &ATC = 4 Then GoTo 1DTM
-     &ATC_clipSafe = -3   'Change - to + if tool clips are on left side
-	 &Prox_State = 0
-     Goto UNITSDONE
-    1PRS4:    'PRS4 ATCs
-		
-		  &ATC_clipSafe = 1.5  'Change + to - if tool clips are on left side
-		  &ATC_clipClearX = 8
-		  &ATC_clipClearY = 2.25
-		  &Prox_State = 0
-     Goto UNITSDONE
-	
-	1DT: 'This is for setting if it is a standard Destop
-		
-		&ATC_clipSafe = 0
-		&Prox_State = 1
-	Goto UNITSDONE
-	
-	1DTM: 'This is for setting if it is a Max Destop
-	GoSub CheckToolBar
-		&ATC_clipSafe = 0
-		&Prox_State = 1
-	Goto UNITSDONE
+'------------------------------------------------------------------------------
 
-
-METRICUNITS:
-    &thClearance = 12
-		&proxClearance = 6
-		&clipZLoc = 280
-		If &ATC = 2 Then GoTo 1PRS4     'PRS-PRS3 ATCs
-		If &ATC = 3 Then GoTo 1DT 
-		If &ATC = 4 Then GoTo 1DTM
-        &ATC_clipSafe = -76  'Change - to + if tool clips are on left side
-	    &Prox_State = 0
-     Goto UNITSDONE
-    2PRS4:    'PRS4
-
-      &ATC_clipSafe = 38   'Change - to + if tool clips are on left side
-	  &ATC_clipClearX = 200
-	  &ATC_clipClearY = 65	
 UNITSDONE:
-    
-	  &oldtool = &ToolIN
+	&oldtool = &ToolIN
     &prox_statUS = %(53)
+	If &ATC = 3 Then Goto Continue
     If &ATC = 4 Then Goto Continue
 	If &prox_statUS = &Prox_State Then GoSub Getoffprox
-    Continue: 
+    
+Continue: 
     VN,0
     PAUSE .2
-	  &ATC_safeclear = (%(3) + (-1 *((%(3) + %(8)))))-&proxClearance
+	&ATC_safeclear = (%(3) + (-1 *((%(3) + %(8)))))- &zBackoff
     &ATC_safeclear = &ATC_safeclear - %(63)
-	  JZ,&ATC_safeclear
-	
-'VN,1
+	JZ,&ATC_safeclear
 
-  'Preliminary Checks..............................................................................................
+'----Preliminary Checks---------------------------------------------------------
       
     If %(101) = 0 Then GoTo Next_Check01    'SPINDLE ON?
-      SO,1,0
-      PAUSE 1
-    Next_Check01:  
-            
+    SO,1,0
+    PAUSE 1
+
+    Next_Check01:          
     If %(101) = 1 Then GoTo spindlestopeRR  'EXIT IF WE COULDN'T STOP!
-    
     FP, c:\SbParts\Custom\ATC\ATC_check_statUS.sbp
     PAUSE .5                                'Allow reading status check
     VD,                                     'Remove status check because it won't stay current (could display at end)
     If &ATC_statUS = OK Then GoTo OK_SWAP_TOOLS
-    If &ATC_statUS = EMPTY Then GoTo settool0 
-    
+    If &ATC_statUS = EMPTY Then GoTo settool0
     PRINT, "ATC_Status is " & &ATC_statUS
-
     ''### may need a better error handler here if we drop through
     'Confused ATC Situation
     'Error setting up for tool change. ATC(58)
     PAUSE 
+ 
  End
 
-OK_SWAP_TOOLS:  'NOW SWAP TOOLS ////////////////////////////////////////////////////////////////////////////////////////
-   '   Routine presumes that there is a known tool number present in tool holder, and that a request has been
-   '     received to swap to another (legal) tool number. If same number, then procedure is just passed through. 
+ '----Tool Change Routines-----------------------------------------------------------
 
-Position_Z:
-	
+OK_SWAP_TOOLS:  'NOW SWAP TOOLS
+   'Routine presumes that there is a known tool number present in tool holder, and that a request has been
+   'Received to swap to another (legal) tool number. If same number, then procedure is just passed through. 
+
+Position_Z:	
    'Update Offsets
     If &ToolIN=0 Then GoTo settool0
     If &ToolIN=1 Then GoTo settool1
@@ -164,28 +119,38 @@ Position_Z:
     If &ToolIN=12 Then GoTo settool12
     If &ToolIN=13 Then GoTo settool13
     If &ToolIN=14 Then GoTo settool14
+	If &ToolIN=15 Then GoTo settool15
+	If &ToolIN=16 Then GoTo settool16
+	If &ToolIN=17 Then GoTo settool17
+	If &ToolIN=18 Then GoTo settool18
+	If &ToolIN=19 Then GoTo settool19
+	If &ToolIN=20 Then GoTo settool20
+	If &ToolIN=21 Then GoTo settool21
+	If &ToolIN=22 Then GoTo settool22
+	If &ToolIN=23 Then GoTo settool23
+	If &ToolIN=24 Then GoTo settool24
     
-
 Droptool:
-   ' If &ATC = 3 Then GoTo DropDT
     If &Tool = &ToolIN Then GoTo Finish_ToolChange 'NO NEED TO DO TOOL CHANGE
-
     If &ATC = 2 Then GoTo 3PRS4     
-      'PRS-PRS3
-	    J2, &sx, &ty          'Jog to X zero and Y midpoint between tool holders
-      SO,3,1        'Open Dust skirt
-	  	
-		If &ATC = 3 Then gosub Extendbar 
-		If &ATC = 4 Then gosub Extendbar 
+	J2, &sx, &ty 'Jog to X zero and Y midpoint between tool holders
+    If &ATC = 1 Then GoTo 3PRS3
+    If &ATC = 3 Then gosub Extendbar 
+	If &ATC = 4 Then gosub Extendbar 
+    Goto Clip 
+	
+3PRS3:
+	'PRS-PRS3 ATCs
+	SO,3,1 'Open Dust skirt
+	GoTo Clip
 
-      Goto Clip 
-    3PRS4:    
-      'PRS4 ATCs
-      J2, &tx - &ATC_clipClearX , &ty  - &ATC_clipClearY  'Move inbetween clips
-      JX, &sx
-      JY, &ty          'Jog to X zero and Y midpoint between tool holders
-
-Clip:  
+3PRS4:    
+    'PRS4 ATCs
+    J2, &tx - &ATC_clipClearX , &ty  - &ATC_clipClearY  'Move inbetween clips
+    JX, &sx
+    JY, &ty          'Jog to X zero and Y midpoint between tool holders
+	Goto Clip
+Clip:
     &clipHeight = &tz - %(8)
     JZ, &clipHeight       'Jog to Z height of toolholder clip
     C#,88                 'Save current speeds and set to ATC speeds
@@ -194,17 +159,13 @@ Clip:
     PAUSE 0.1
 	'If &ATC = 3 Then pause 1 
 	'If &ATC = 4 Then pause 1
-	
     MZ, %(3)+ &thClearance           'Move up to clear toolholder
     PAUSE 0.2    
-	
 	'If &ATC = 3 Then SO,7,0 
 	'If &ATC = 4 Then SO,7,0
     If %(58) = 0 Then GoTo bartoperror    
     SO, 8,0               'Close toolholder chuck
-
     PAUSE 0.2
-
     If %(58) = 1 Then GoTo barboterror
 	Goto ZeroToolDrop
 
@@ -229,49 +190,54 @@ ZeroToolDrop:
     If &newtool=12 Then GoTo settool12
     If &newtool=13 Then GoTo settool13
     If &newtool=14 Then GoTo settool14
+	If &newtool=15 Then GoTo settool15
+	If &newtool=16 Then GoTo settool16
+	If &newtool=17 Then GoTo settool17
+	If &newtool=18 Then GoTo settool18
+	If &newtool=19 Then GoTo settool19
+	If &newtool=20 Then GoTo settool20
+	If &newtool=21 Then GoTo settool21
+	If &newtool=22 Then GoTo settool22
+	If &newtool=23 Then GoTo settool23
+	If &newtool=24 Then GoTo settool24
+	
 
     GoSub Exit_Resets ''##?? Error Handler needed here??
 
 End                       'Exit if invalid tool number
 
 Changetool:
-
-  'Setup new Z height of bit relative to table surface from Table Base Coordinates
-    &new_curZ = %(3) - ((&th + &zOffset) - %(8))  'update to current Z
+    'Setup new Z height of bit relative to table surface from Table Base Coordinates
+    &new_curZ = %(3) - ((&th + &zOffset) - %(8)) 'update to current Z
     VA,,,&new_curZ,,,,,&th + &zOffset
-     
-  'Write all updated variables before starting next move
+    'Write all updated variables before starting next move
     FP, &ATC_Writer
     &clipHeight = &tz - %(8)
-
     PAUSE 0.2
-
-    &ATC_safeclear = (%(3) + (-1 *((%(3) + %(8))))) - &proxClearance
+    &ATC_safeclear = (%(3) + (-1 *((%(3) + %(8))))) - &zBackoff
     &ATC_safeclear = &ATC_safeclear - %(63)
-
     JZ,&ATC_safeclear
-	
 	If &ATC = 3 Then gosub Retractbar 
 	If &ATC = 4 Then gosub Retractbar 
 
-  'Skip pick up if zero tool number and leave spindle empty
+    'Skip pick up if zero tool number and leave spindle empty
     If &newtool = 0 Then GoTo Finish_ToolChange
     
     JX, &tx + &ATC_clipSafe  'Jog X to toolholder X THESE 3 LINES HAVE BEEN BROKEN OUT - DP
     If &ATC = 2 Then GoTo 4PRS4     
-      'PRS-PRS3
-      J2, &tx, &ty
-      SO,3,1
-	  
+    'PRS-PRS3
+    J2, &tx, &ty
+    SO,3,1  
 	If &ATC = 3 Then gosub Extendbar 
-	If &ATC = 4 Then gosub Extendbar 
+	If &ATC = 4 Then gosub Extendbar
+    GoTo CT1
 
-      GoTo CT1
-    4PRS4:    'PRS4 ATCs
-      JY, &ty
-      JX, &tx
-  CT1:   
-	JZ, &clipHeight + (&proxClearance * 2)      'Jog Z to 1 inch over toolholder height
+4PRS4:    'PRS4 ATCs
+    JY, &ty
+    JX, &tx
+
+CT1:   
+	JZ, &clipHeight + &thClearance     'Jog Z to 1 inch over toolholder height
     SO, 8,1                  'Open toolholder chuck
     PAUSE 0.2
 
@@ -284,7 +250,7 @@ Changetool:
 
     PAUSE .2
 
-   	&ATC_safeclear = (%(3) + (-1 *((%(3) + %(8))))) - &proxClearance
+   	&ATC_safeclear = (%(3) + (-1 *((%(3) + %(8))))) - &zBackoff
 	JZ,&ATC_safeclear
 	If %(57) = 0 Then GoTo toolerror
     
@@ -300,7 +266,7 @@ Changetool:
 
 Finish_ToolChange:
     If &newtool = 0 Then J2, &tx, &ty
-    &ATC_safeclear = (%(3) + (-1 *((%(3) + %(8))))) - &proxClearance
+    &ATC_safeclear = (%(3) + (-1 *((%(3) + %(8))))) - &zBackoff
 	  &ATC_safeclear = &ATC_safeclear - %(63)
 
     If &ToolIN = 0 Then JZ,&ATC_safeclear
@@ -320,7 +286,7 @@ End
 settool0:
   &tx= 0                           'Tool clip X location  
   &ty= 0                           'Tool clip Y location   
-  &tz= -&clipZLoc                         'Tool clip Z location
+  &tz= 0                           'Tool clip Z location
   &th= &Tool0_Z                    'Height of bit off table relative to top Prox
   &sy= 0                           'Safe Y position for tool change
   &sx = 3
@@ -468,6 +434,108 @@ settool14:
   If &Dropped = 0 Then GoTo Droptool
  GoTo Changetool
 
+ settool15:
+  &tx= &Clip15_X - &xOffset - %(6) - %(61)
+  &ty= &Clip15_Y - &yOffset - %(7) - %(62)
+  &tz= &Clip15_Z  - %(63)
+  &th= &Tool15_Z 
+  '&sy= &ty - &ATC_clipSafe
+  &sx = &tx + &ATC_clipSafe
+  If &Dropped = 0 Then GoTo Droptool
+ GoTo Changetool
+
+ settool16:
+  &tx= &Clip16_X - &xOffset - %(6) - %(61)
+  &ty= &Clip16_Y - &yOffset - %(7) - %(62)
+  &tz= &Clip16_Z  - %(63)
+  &th= &Tool16_Z 
+  '&sy= &ty - &ATC_clipSafe
+  &sx = &tx + &ATC_clipSafe
+  If &Dropped = 0 Then GoTo Droptool
+ GoTo Changetool
+ 
+ settool17:
+  &tx= &Clip17_X - &xOffset - %(6) - %(61)
+  &ty= &Clip17_Y - &yOffset - %(7) - %(62)
+  &tz= &Clip17_Z  - %(63)
+  &th= &Tool17_Z 
+  '&sy= &ty - &ATC_clipSafe
+  &sx = &tx + &ATC_clipSafe
+  If &Dropped = 0 Then GoTo Droptool
+ GoTo Changetool
+ 
+ settool18:
+  &tx= &Clip18_X - &xOffset - %(6) - %(61)
+  &ty= &Clip18_Y - &yOffset - %(7) - %(62)
+  &tz= &Clip18_Z  - %(63)
+  &th= &Tool18_Z 
+  '&sy= &ty - &ATC_clipSafe
+  &sx = &tx + &ATC_clipSafe
+  If &Dropped = 0 Then GoTo Droptool
+ GoTo Changetool
+ 
+ settool19:
+  &tx= &Clip19_X - &xOffset - %(6) - %(61)
+  &ty= &Clip19_Y - &yOffset - %(7) - %(62)
+  &tz= &Clip19_Z  - %(63)
+  &th= &Tool19_Z 
+  '&sy= &ty - &ATC_clipSafe
+  &sx = &tx + &ATC_clipSafe
+  If &Dropped = 0 Then GoTo Droptool
+ GoTo Changetool
+ 
+ settool20:
+  &tx= &Clip20_X - &xOffset - %(6) - %(61)
+  &ty= &Clip20_Y - &yOffset - %(7) - %(62)
+  &tz= &Clip20_Z  - %(63)
+  &th= &Tool20_Z 
+  '&sy= &ty - &ATC_clipSafe
+  &sx = &tx + &ATC_clipSafe
+  If &Dropped = 0 Then GoTo Droptool
+ GoTo Changetool
+ 
+ settool21:
+  &tx= &Clip21_X - &xOffset - %(6) - %(61)
+  &ty= &Clip21_Y - &yOffset - %(7) - %(62)
+  &tz= &Clip21_Z  - %(63)
+  &th= &Tool21_Z 
+  '&sy= &ty - &ATC_clipSafe
+  &sx = &tx + &ATC_clipSafe
+  If &Dropped = 0 Then GoTo Droptool
+ GoTo Changetool
+ 
+ settool22:
+  &tx= &Clip22_X - &xOffset - %(6) - %(61)
+  &ty= &Clip22_Y - &yOffset - %(7) - %(62)
+  &tz= &Clip22_Z  - %(63)
+  &th= &Tool22_Z 
+  '&sy= &ty - &ATC_clipSafe
+  &sx = &tx + &ATC_clipSafe
+  If &Dropped = 0 Then GoTo Droptool
+ GoTo Changetool
+ 
+ settool23:
+  &tx= &Clip23_X - &xOffset - %(6) - %(61)
+  &ty= &Clip23_Y - &yOffset - %(7) - %(62)
+  &tz= &Clip23_Z  - %(63)
+  &th= &Tool23_Z 
+  '&sy= &ty - &ATC_clipSafe
+  &sx = &tx + &ATC_clipSafe
+  If &Dropped = 0 Then GoTo Droptool
+ GoTo Changetool
+ 
+ settool24:
+  &tx= &Clip24_X - &xOffset - %(6) - %(61)
+  &ty= &Clip24_Y - &yOffset - %(7) - %(62)
+  &tz= &Clip24_Z  - %(63)
+  &th= &Tool24_Z 
+  '&sy= &ty - &ATC_clipSafe
+  &sx = &tx + &ATC_clipSafe
+  If &Dropped = 0 Then GoTo Droptool
+ GoTo Changetool
+ 
+ 
+
 toolerror:
   GoSub Exit_Resets
   PRINT "Error grabbing tool check tool changer. Any key to exit (ATC262)"
@@ -530,6 +598,7 @@ Getoffprox:
 
 Exit_Resets:
     'Reset speeds and other stuff
+	 if &ATC = 3 then GoSub RetractBar
 	 if &ATC = 4 then GoSub RetractBar
      FP, C:\SBPARTS\custom\ATC\ATC_restore_settings.sbp
 Return
@@ -538,7 +607,6 @@ ExtendBar:
 	SO,7,1
 	pause 1.5
 	if %(56) = 0 then goto ExtendIssue
-
 Return
 
 RetractBar:

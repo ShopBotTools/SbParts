@@ -50,6 +50,8 @@
   SO, 1, 0
   SO, 2, 0
 
+'Loads ATC variables by calling Custom Cut 89   
+   C#,89
 'Load variables from my_variables.sbc, process called by Custom Cut 90
    C#,90
 
@@ -63,9 +65,6 @@
 		If &zup < &zbot  Then &zup = &Zbot +  (.125  * &SCALE)
 		If %(3) < &zup Then MZ, &zup
 
-   'Set a value for our first Z move
-      &big_plunge = %(3) - 10
-      IF %(25) = 1 THEN &big_plunge = %(3) - 254
 
    'Check to see if we should move to a zeroing location
       IF &my_ZzeroStartX <> no THEN GOSUB STARTMOVE
@@ -73,10 +72,6 @@
    'Save current speeds and set zeroing speed
       &start_Zmove_Speed = %(73)
       &start_XYmove_Speed = %(71)
-      &new_Zmove_Speed = .25
-      &new_XYmove_Speed = .25
-      IF %(25) = 1 THEN &new_Zmove_Speed = 6
-      IF %(25) = 1 THEN &new_XYmove_Speed = 6
 
 
 '----------------------------------------------------------------Zeroing PROGRAM 
@@ -90,8 +85,8 @@ FIRST PLUNGE:
 'Now set-up the contact switch action ... 
   ON INP(&my_ZzeroInput,1) GOTO CONTACT1 'this is where we'll go on contact with plate
 
-  VS, &new_XYmove_Speed, (&new_Zmove_Speed * 2 )
-  MZ, &big_plunge            'Start continuous plunge ... while looking for contact to occur
+  VS, &xyTopApproachSpeed,&zTopApproachSpeed
+  MZ, %(3) - &zSearch            'Start continuous plunge ... while looking for contact to occur
 
 'If we don't contact anything for some reason we end up here
   ON INP(&my_ZzeroInput,1)   'Turn off switch check
@@ -107,10 +102,8 @@ SECOND PLUNGE:
 'Set-up the second contact switch action ... 
   ON INP(&my_ZzeroInput,1) GoTo CONTACT2 'this is where we'll go on contact with plate
 
-  VS, , &new_Zmove_Speed
-  &little_plunge = %(3) - 2
-  IF %(25) = 1 THEN &little_plunge = %(3) - 50.8
-  MZ, &little_plunge         'Start continuous plunge ... looking for second contact to occur
+  VS, , &zSlowApproachSpeed
+  MZ, %(3) - &zSearch         'Start continuous plunge ... looking for second contact to occur
 
 'If we don't contact anything for some reason we end up here
   ON INP(&my_ZzeroInput,1)   'Turn off switch check

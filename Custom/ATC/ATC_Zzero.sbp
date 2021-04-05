@@ -6,33 +6,17 @@
 
   SO,1,0        'Make sure spindle is not running
 
-If %(25) = 1 Then GoTo METRICUNITS
-	    &bigZclear = 24
-		&bigZplunge = -18
-		&ZUP = .5    'Distance off table to pull up
-		&zZeroMoveSpeed = .75
-		&ZforVA = -0.5
-		&safeDTone = 2
-		&safeDTtwo = 1.5
-    GoTo ZZERO_INITVARS
-METRICUNITS:
-        &bigZclear = 610
-		&bigZplunge = -460
-		&ZUP = 12    'Distance off table to pull up
-		&zZeroMoveSpeed = 19
-		&ZforVA = -12.7
-		&safeDTone = 50.8
-		&safeDTtwo = 38.1
 'Initialize Variables
 ZZERO_INITVARS:
     'Initialize
   &Ztop = 0
   &TotalZ = 0
+  &zHeight = 0
 TOP:
   INPUT "Bit number to Zero:" &tool
 
   FP, C:\SbParts\Custom\ATC\ATC.SBP
-  MS,,&zZeroMoveSpeed	    'Change move speed to .75
+  MS,,&zTopApproachSpeed    'Change move speed to .75
 
   SF, 0         'Deactivate software limits
   VN, 0        'Turn limit switch OFF
@@ -40,27 +24,27 @@ TOP:
   'Calibrate using Prox switch on Z
   If &ATC = 4 Then GoSub EnterSafeDTMATC
   ON INP(3,1) GoSub CONTACTZ1
-    MZ, &bigZclear
+    MZ, &zSearch
 
   ON INP(3,1) GoSub CONTACTZ2
-    MZ, &bigZclear
+    MZ, &zSearch
   If &ATC = 4 Then GoSub LeaveSafeDTMATC
 
   VN, 0        'Turn limit switch OFF
 
-  VA,,,&ZforVA,,,,,0
+  VA,,,-&zBackoff,,,,,0
   J2, &sx , &ATC_zZeroY - %(7)
   JY, &ATC_zZeroY - %(7)       'XY Location for Z Zeroing (Enter X&Y Location of Fixed Zero plate)
   JX, &ATC_zZeroX - %(6)
 
-  SO,3,1
-  So,7,1
+  If ATC=1 Then SO,3,1
+  SO,7,1
   'Press ENTER when clip is on bit shank and ready to zero
   PAUSE .5
 
 'Set the contact switch action ... Plate NOW SET FOR Input Switch #1
   ON INP(1,1) GoSub CONTACT1
-    MZ, &bigZplunge 
+    MZ, -&zSearch
 
   PRINT, "Tool #" & &Tool & " height = " & &zHeight
 
@@ -76,6 +60,18 @@ TOP:
   If &Tool = 10 Then &Tool10_Z = &zHeight
   If &Tool = 11 Then &Tool11_Z = &zHeight
   If &Tool = 12 Then &Tool12_Z = &zHeight
+  If &Tool = 13 Then &Tool13_Z = &zHeight
+  If &Tool = 14 Then &Tool14_Z = &zHeight
+  If &Tool = 15 Then &Tool15_Z = &zHeight
+  If &Tool = 16 Then &Tool16_Z = &zHeight
+  If &Tool = 17 Then &Tool17_Z = &zHeight
+  If &Tool = 18 Then &Tool18_Z = &zHeight
+  If &Tool = 19 Then &Tool19_Z = &zHeight
+  If &Tool = 20 Then &Tool20_Z = &zHeight
+  If &Tool = 21 Then &Tool21_Z = &zHeight
+  If &Tool = 22 Then &Tool22_Z = &zHeight
+  If &Tool = 23 Then &Tool23_Z = &zHeight
+  If &Tool = 24 Then &Tool24_Z = &zHeight
   
   FP, &ATC_Writer
 	
@@ -103,8 +99,7 @@ CONTACT1:
   
   &zHeight = %(3)
   
-  
-  JZ,%(3) + &ZUP  'Pull-up SLIGHTLY ... 
+  JZ,%(3) + &zBackoff  'Pull-up SLIGHTLY ... 
   'Now We're Ready to Make Slow Move for Accurate Reading
   PAUSE .2
  Return
@@ -120,12 +115,12 @@ CONTACT2:
 
 CONTACTZ1:
   ON INP(5,0)
-  JZ,%(3)+&ZforVA
+  JZ,%(3)-&zBackoff
  Return
 
 CONTACTZ2:
   ON INP(5,0)
-  MZ,%(3)+&ZforVA
+  MZ,%(3)-&zBackoff
   &Ztop = %(3) 
  Return
 

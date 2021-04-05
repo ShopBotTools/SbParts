@@ -20,37 +20,7 @@
 
 ' these values are used if you are using inch units...change them if you're using metric
 &first = 1
-
-if %(25) = 1 then GoTo METRICUNITS
-	    &ATC_holderHeight = 2.037
-        &holder_radius = .75
-        &stylus_dia = .25
-        &safe_lift = 1 
-        &newspeed_XY = .4
-        &newspeed_Z = .4
-		&tableLength = 0
-		&zBigMove = 16
-		&zProxClearance = .5
-		&yInitOffset = 1.5
-		&clipHeightClearance = 2
-		&safeEdge = .25
-		&nextY = 12
-    GoTo INITVARS
-METRICUNITS:
-        &ATC_holderHeight = 51.7398
-        &holder_radius = 19.05
-        &stylus_dia = 6.35
-        &safe_lift = 25.4 
-        &newspeed_XY = 10.16
-        &newspeed_Z = 10.16
-   	    &tableLength = 0
-		&zBigMove = 400
-		&zProxClearance = 12
-		&yInitOffset = 38
-		&clipHeightClearance = 50
-		&safeEdge = 6
-		&nextY = 305
-'Initialize Variables
+FP, c:\SbParts\Custom\ATC\ATC_Load_All_Values.sbp
 INITVARS:
     &startspeed_XY = %(71)
     &startspeed_Z = %(73)
@@ -63,17 +33,8 @@ INITVARS:
     &this_tool = 1
     &number_clips = 0
     &max_center_move = &holder_radius * 1.5
-    &X_Prox = 2   'Input number prox switch is connected to
-    &Y_Prox = 3   'Input number prox switch is connected to
-    &Z_Prox = 5   'Input number prox switch is connected to
-
-'Define the state of prox switch to test for when triggered by target
-    &X_State = 0  '1 when Normally Open: 0 = Normally Closed
-    &Y_State = 0  '1 when Normally Open: 0 = Normally Closed
-    &Z_State = 0  '1 when Normally Open: 0 = Normally Closed
 
 'Read existing Safe Z & Y values from ATC_Variables file
-    C#, 89    'Read file path variables
     
     INPUT "How many ATC tool holders need to be calibrated?" &number_clips 
 	if &number_clips = " " then end
@@ -96,13 +57,13 @@ READY_TO_START:
     VN,0
 	SF,0
     ON INP(&Z_Prox,&Z_State) GoSub ZEROZ1
-      JZ, &zBigMove
+      MZ, %(3) + &zSearch
     ON INP(&Z_Prox,&Z_State) GoSub ZEROZ1
-      MZ, &zBigMove
+      MZ, %(3) + &zSearch
     VN,1
 
-	'Open dust skirt
-    SO,3,1
+	'Open dust skirt if PRS3 or earlier ATC
+    If &ATC = 1 Then SO,3,1
 
 	'Insert an empty tool holder in the spindle (no collet or nut)...
     PAUSE
@@ -123,12 +84,12 @@ READY_TO_START:
 	&nextHolderY = %(2) + &nextY
 
 'Calculate the Z height of the clip
-    MX, %(1)-&zProxClearance
+    'MX, %(1)-&zProxClearance
 
-    MS,&newspeed_XY,&newspeed_Z
+    MS,&xySlowApproachSpeed,&zSlowApproachSpeed
 
  	ON INPUT(1,1) GoSub Set_ClipHeight
-	MZ, -&zBigMove
+	MZ, -&zSearch
 
     J2, &initX, &initY - &yInitOffset
 
@@ -161,6 +122,18 @@ NEXT_HOLDER:
     if &this_tool = 10 then GoTo TOOL10
     if &this_tool = 11 then GoTo TOOL11
     if &this_tool = 12 then GoTo TOOL12
+	if &this_tool = 13 then GoTo TOOL13
+	if &this_tool = 14 then GoTo TOOL14
+	if &this_tool = 15 then GoTo TOOL15
+	if &this_tool = 16 then GoTo TOOL16
+	if &this_tool = 17 then GoTo TOOL17
+	if &this_tool = 18 then GoTo TOOL18
+	if &this_tool = 19 then GoTo TOOL19
+	if &this_tool = 20 then GoTo TOOL20
+	if &this_tool = 21 then GoTo TOOL21
+	if &this_tool = 22 then GoTo TOOL22
+	if &this_tool = 23 then GoTo TOOL23
+	if &this_tool = 24 then GoTo TOOL24
 
 TOOL01:
     &X01name = &center_X
@@ -233,6 +206,78 @@ TOOL12:
     &Y12name = &center_Y
     &Z12name = &thisZ
 	&this_tool = 13
+	GoTo TOOL_DONE
+TOOL13:
+    &X13name = &center_X
+    &Y13name = &center_Y
+    &Z13name = &thisZ
+	&this_tool = 14
+	GoTo TOOL_DONE
+TOOL14:
+    &X14name = &center_X
+    &Y14name = &center_Y
+    &Z14name = &thisZ
+	&this_tool = 15
+	GoTo TOOL_DONE
+TOOL15:
+    &X15name = &center_X
+    &Y15name = &center_Y
+    &Z15name = &thisZ
+	&this_tool = 16
+	GoTo TOOL_DONE
+TOOL16:
+    &X16name = &center_X
+    &Y16name = &center_Y
+    &Z16name = &thisZ
+	&this_tool = 17
+	GoTo TOOL_DONE
+TOOL17:
+    &X17name = &center_X
+    &Y17name = &center_Y
+    &Z17name = &thisZ
+	&this_tool = 18
+	GoTo TOOL_DONE
+TOOL18:
+    &X18name = &center_X
+    &Y18name = &center_Y
+    &Z18name = &thisZ
+	&this_tool = 19
+	GoTo TOOL_DONE
+TOOL19:
+    &X19name = &center_X
+    &Y19name = &center_Y
+    &Z19name = &thisZ
+	&this_tool = 20
+	GoTo TOOL_DONE
+TOOL20:
+    &X20name = &center_X
+    &Y20name = &center_Y
+    &Z20name = &thisZ
+	&this_tool = 21
+	GoTo TOOL_DONE
+TOOL21:
+    &X21name = &center_X
+    &Y21name = &center_Y
+    &Z21name = &thisZ
+	&this_tool = 22
+	GoTo TOOL_DONE
+TOOL22:
+    &X22name = &center_X
+    &Y22name = &center_Y
+    &Z22name = &thisZ
+	&this_tool = 23
+	GoTo TOOL_DONE
+TOOL23:
+    &X23name = &center_X
+    &Y23name = &center_Y
+    &Z23name = &thisZ
+	&this_tool = 24
+	GoTo TOOL_DONE
+TOOL24:
+    &X24name = &center_X
+    &Y24name = &center_Y
+    &Z24name = &thisZ
+	&this_tool = 25
 
 TOOL_DONE:
 
@@ -299,6 +344,54 @@ CLEANUP:
     WRITE #1;"&CLIP12_X = ";&X12name
     WRITE #1;"&CLIP12_Y = ";&Y12name
     WRITE #1;"&CLIP12_Z = ";&Z12name
+  if &Number_Clips = 12 then GoTo WRAPUP
+    WRITE #1;"&CLIP13_X = ";&X13name
+    WRITE #1;"&CLIP13_Y = ";&Y13name
+    WRITE #1;"&CLIP13_Z = ";&Z13name
+  if &Number_Clips = 13 then GoTo WRAPUP
+    WRITE #1;"&CLIP14_X = ";&X14name
+    WRITE #1;"&CLIP14_Y = ";&Y14name
+    WRITE #1;"&CLIP14_Z = ";&Z14name
+  if &Number_Clips = 14 then GoTo WRAPUP
+    WRITE #1;"&CLIP15_X = ";&X15name
+    WRITE #1;"&CLIP15_Y = ";&Y15name
+    WRITE #1;"&CLIP15_Z = ";&Z15name
+  if &Number_Clips = 15 then GoTo WRAPUP
+    WRITE #1;"&CLIP16_X = ";&X16name
+    WRITE #1;"&CLIP16_Y = ";&Y16name
+    WRITE #1;"&CLIP16_Z = ";&Z16name
+  if &Number_Clips = 16 then GoTo WRAPUP
+    WRITE #1;"&CLIP17_X = ";&X17name
+    WRITE #1;"&CLIP17_Y = ";&Y17name
+    WRITE #1;"&CLIP17_Z = ";&Z17name
+  if &Number_Clips = 17 then GoTo WRAPUP
+    WRITE #1;"&CLIP18_X = ";&X18name
+    WRITE #1;"&CLIP18_Y = ";&Y18name
+    WRITE #1;"&CLIP18_Z = ";&Z18name
+  if &Number_Clips = 18 then GoTo WRAPUP
+    WRITE #1;"&CLIP19_X = ";&X19name
+    WRITE #1;"&CLIP19_Y = ";&Y19name
+    WRITE #1;"&CLIP19_Z = ";&Z19name
+  if &Number_Clips = 19 then GoTo WRAPUP
+    WRITE #1;"&CLIP20_X = ";&X20name
+    WRITE #1;"&CLIP20_Y = ";&Y20name
+    WRITE #1;"&CLIP20_Z = ";&Z20name
+  if &Number_Clips = 20 then GoTo WRAPUP
+    WRITE #1;"&CLIP21_X = ";&X21name
+    WRITE #1;"&CLIP21_Y = ";&Y21name
+    WRITE #1;"&CLIP21_Z = ";&Z21name
+  if &Number_Clips = 21 then GoTo WRAPUP
+    WRITE #1;"&CLIP22_X = ";&X22name
+    WRITE #1;"&CLIP22_Y = ";&Y22name
+    WRITE #1;"&CLIP22_Z = ";&Z22name
+  if &Number_Clips = 22 then GoTo WRAPUP
+    WRITE #1;"&CLIP23_X = ";&X23name
+    WRITE #1;"&CLIP23_Y = ";&Y23name
+    WRITE #1;"&CLIP23_Z = ";&Z23name
+  if &Number_Clips = 23 then GoTo WRAPUP
+    WRITE #1;"&CLIP24_X = ";&X24name
+    WRITE #1;"&CLIP24_Y = ";&Y24name
+    WRITE #1;"&CLIP24_Z = ";&Z24name
 
 WRAPUP:
     CLOSE #1
@@ -336,7 +429,7 @@ FIND_HOLDER:
 
     JY, &yEdge - &safeEdge
     JZ, %(3) + &safe_lift
-	MY, &yEdge + &stylus_dia
+	JY, &yEdge + &stylus_dia
 	'Then find the Holder height   
     if %(51) = 1 then GoTo CLOSED_EXIT
       ON INPUT(1,1) GoTo TOPZ
@@ -349,14 +442,14 @@ FIND_HOLDER:
 	
     JY, &yEdge + &holder_radius + (&stylus_dia/2)
 	&start_Y = %(2)
-	MZ, %(3) - &safe_lift - &safeEdge
+	JZ, %(3) - &safe_lift - &safeEdge
    
 	GoSub CENTER_IN_XY
 
     ' lift to clear lip and then move to position for next holder
-    MZ, %(3) + &safe_lift
-    MY, %(2) + (&holder_radius * 2)
-	MZ, &Z_top_surface - &safeEdge
+    JZ, %(3) + &safe_lift
+    JY, %(2) + (&holder_radius * 2)
+	JZ, &Z_top_surface - &safeEdge
 	&nextHolderY = %(2) + &nextY
 
   return
@@ -439,7 +532,7 @@ ZEROZ1:
   ON INP(&Z_Prox,&Z_State)
   VA,,,0,,,,,0
   PAUSE .1
-  MZ,-&zProxClearance
+  MZ,-&zBackoff
 return	
 
 

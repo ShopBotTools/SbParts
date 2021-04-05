@@ -11,41 +11,19 @@
 '
 'Set up Switch Numbers
 
-&X_Prox = 2
-&Y_Prox = 3
-&Z_Prox = 3
-
-&X_State = 1
-&Y_State = 1
-&Z_State = 1
-
-If &ATC = 1 then gosub Prox1
-If &ATC = 2 then gosub Prox2
-If &ATC = 3 then gosub Prox3
-If &ATC = 4 then gosub Prox4
-
+FP, c:\SbParts\Custom\ATC\ATC_Load_All_Values.sbp 'Read ATC_Variables, ATC_Tool_Variables and ATC_Settings and custom variables file from Custom Cut 90
 
 'Determine whether we are in Preview mode or Move/Cut mode
     &modenow = %(22)
     If &modenow = 1 Then GoSub Changemode
-
-    C#,89            'Read ATC_Variables and ATC_Tool_Variables
-
-'If &ToolIN is zero tool then test to make sure it is really empty
-    If &ToolIN = 0 Then GoTo ZeroToolIN
-
+	
+	If &ToolIN = 0 Then Goto ZeroToolIN 
 'Check to make sure there is a tool holder properly inserted into spindle
     If %(57) = 0 Then GoTo ToolNotIN
-    If &dropped = 1 Then &dropped = 0     
+    If &dropped = 1 Then &dropped = 0 
 
   ZeroTool:
-    C#,90            'Load the custom variables file from Custom Cut 90   
 
-'    FP, &ATC_Writer
-    &zOffset = 0
-    'Get Speed Limits
-    If %(25) = 0 Then GoSub GetInchSpeedLimits
-    If %(25) = 1 Then GoSub GetMetricSpeedLimits
 
     &SCALE = 1
 
@@ -62,12 +40,16 @@ If &ATC = 4 then gosub Prox4
     &XYtempJog_Speed = &start_XYjog_Speed
     &Zapproach_Speed = &start_Zmove_Speed
     &ZtempJog_Speed = &start_Zjog_Speed
+
     If &XYapproach_Speed > &TopXY_ApproachSpeed Then &XYapproach_Speed = &TopXY_ApproachSpeed
     If &XYtempJog_Speed > &TopXY_JogSpeed Then &XYtempJog_Speed = &TopXY_JogSpeed
     If &Zapproach_Speed > &TopZ_ApproachSpeed Then &Zapproach_Speed = &TopZ_ApproachSpeed
     If &ZtempJog_Speed > &TopZ_JogSpeed Then &ZtempJog_Speed = &TopZ_JogSpeed
 
+
     VS, &XYapproach_Speed,&Zapproach_Speed,,,&XYtempJog_Speed,&ZtempJog_Speed         '... and assign slower speeds
+	
+	&home_th = 0 'Initialize home_th variable
 
     If &ToolIN=0 Then &home_th = &Tool0_Z
     If &ToolIN=1 Then &home_th = &Tool1_Z
@@ -82,6 +64,18 @@ If &ATC = 4 then gosub Prox4
 	If &ToolIN=10 Then &home_th = &Tool10_Z
 	If &ToolIN=11 Then &home_th = &Tool11_Z
 	If &ToolIN=12 Then &home_th = &Tool12_Z
+	If &ToolIN=13 Then &home_th = &Tool13_Z
+	If &ToolIN=14 Then &home_th = &Tool14_Z
+	If &ToolIN=15 Then &home_th = &Tool15_Z
+	If &ToolIN=16 Then &home_th = &Tool16_Z
+	If &ToolIN=17 Then &home_th = &Tool17_Z
+	If &ToolIN=18 Then &home_th = &Tool18_Z
+	If &ToolIN=19 Then &home_th = &Tool19_Z
+	If &ToolIN=20 Then &home_th = &Tool20_Z
+	If &ToolIN=21 Then &home_th = &Tool21_Z
+	If &ToolIN=22 Then &home_th = &Tool22_Z
+	If &ToolIN=23 Then &home_th = &Tool23_Z
+	If &ToolIN=24 Then &home_th = &Tool24_Z
 
     &prox_statUS = %(52)
     If &prox_statUS = &X_State Then GoSub Getoffprox 'Check status of input #2
@@ -153,9 +147,9 @@ Xcontact:
      ON INP(&X_Prox,&X_State)                 'Set switch to nothing to prevent secondary trigger
      VA,&X_dist                 'Set approx position
      PAUSE .2
-     JX, %(1) + &safe                'Move back out for another pass
+     JX, %(1) + &xyBackoff                'Move back out for another pass
      ON INP(&X_Prox,&X_State) GoTo Xagain
-     MX, &small_move
+     MX, -&xySearch
      End
   Xagain:
      ON INP(&X_Prox,&X_State)                 'Set switch to nothing to prevent secondary trigger
@@ -172,9 +166,9 @@ Ycontact:
      ON INP(&Y_Prox,&Y_State)                 'Set switch to nothing to prevent secondary trigger
      VA,,&Y_dist                 'Set position
      PAUSE .2
-     JY, %(2) + &safe                'Move back out for another pass
+     JY, %(2) + &xyBackoff              'Move back out for another pass
      ON INP(&Y_Prox,&Y_State) GoTo Yagain
-     MY, &small_move
+     MY, -&xySearch
 '     END
   Yagain:
      ON INP(&Y_Prox,&Y_State)                       'Set switch to nothing to prevent secondary trigger
@@ -192,14 +186,14 @@ Zcontact:
    'We hit the limit switch! 
      ON INP(&Z_Prox,&Z_State)                       'Set switch to nothing to prevent secondary trigger
      PAUSE .2
-     JZ, %(3)-&move_off_Zswitch         'Move back out for another pass
+     JZ, %(3)-&zBackoff        'Move back out for another pass
      ON INP(&Z_Prox,&Z_State) GoTo Zagain
-     MZ, %(3)-&small_move
+     MZ, %(3)+&zSearch
      End
   Zagain:
      ON INP(&Z_Prox,&Z_State)                                         'Set switch to nothing to prevent secondary trigger
      VA,,,(-1)*&home_th-&PlateOffset,,,,,&home_th+&PlateOffset   'Set real position
-     MZ, %(3) - &move_off_Zswitch  
+     MZ, %(3) - &zBackoff  
 	&ATC_safeclear = %(3)                                    'Clear the Prox Switch
      PAUSE .2
 'Z Axis now zeroed ...
@@ -240,70 +234,3 @@ ZeroToolIn:
   'Make sure dropped is set to 0 now that it is confirmed that a tool holder is in place     
     If &dropped = 1 Then &dropped = 0 
  GoTo ZeroTool
-
-
-GetInchSpeedLimits:
-    &TopXY_ApproachSpeed = 1.0
-    &TopXY_JogSpeed = 4.0
-    &TopZ_ApproachSpeed = 0.5
-    &TopZ_JogSpeed = 1.0
-    &move_off_Zswitch = .25
-    &big_move = -200
-    &small_move = -15
-	&clear = 0.25
-	&safe = 2
-
- Return
-
-GetMetricSpeedLimits:
-    &TopXY_ApproachSpeed = 25.4
-    &TopXY_JogSpeed = 101.6
-    &TopZ_ApproachSpeed = 12.5
-    &TopZ_JogSpeed = 101.6
-    &move_off_Zswitch = 12
-    &big_move = -5000
-    &small_move = -250
-	&clear = 6.35
-	&safe = 50.8
-
- Return
-
-Prox1:
-	&X_Prox = 2
-	&Y_Prox = 3
-	&Z_Prox = 5
-
-	&X_State = 0
-	&Y_State = 0
-	&Z_State = 0
-Return
-
-Prox2:
-	&X_Prox = 2
-	&Y_Prox = 3
-	&Z_Prox = 5
-
-	&X_State = 0
-	&Y_State = 0
-	&Z_State = 0
-Return
-
-Prox3:
-	&X_Prox = 3
-	&Y_Prox = 2
-	&Z_Prox = 3
-
-	&X_State = 1
-	&Y_State = 1
-	&Z_State = 1
-Return
-
-Prox4:
-	&X_Prox = 3
-	&Y_Prox = 3
-	&Z_Prox = 3
-
-	&X_State = 1
-	&Y_State = 1
-	&Z_State = 1
-Return

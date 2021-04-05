@@ -15,23 +15,7 @@
     SO,1,0        'Make sure spindle is not running
 
 'Initialize
-if %(25) = 1 Then Goto METRICUNITS
-    &ZUP = 0.5    'Distance off table to pull up
-	&bigZ = 16
-	&jogZset = 1
-	&moveZset = .75
-	&zClearMove = .50
-	Goto FINISHINIT
-METRICUNITS:
-    &ZUP = 12    'Distance off table to pull up
-	&bigZ = 400
-	&jogZset = 25
-	&moveZset = 19
-	&zClearMove = 12
-
-FINISHINIT:
     &th_z = 0     'Initialize to zero
-
     C#,90         'Load the custom variables file from Custom Cut 90
     C#,89         'Read variables from ATC_Variables and ATC_Tool_Variables
     C#,88         'Set speeds and scale depending on unit type
@@ -52,6 +36,22 @@ FINISHINIT:
     IF &ToolIN = 6 THEN &th_z = &Tool6_Z
     IF &ToolIN = 7 THEN &th_z = &Tool7_Z
     IF &ToolIN = 8 THEN &th_z = &Tool8_Z
+	IF &ToolIN = 9 THEN &th_z = &Tool9_Z
+	IF &ToolIN = 10 THEN &th_z = &Tool10_Z
+	IF &ToolIN = 11 THEN &th_z = &Tool11_Z
+	IF &ToolIN = 12 THEN &th_z = &Tool12_Z
+	IF &ToolIN = 13 THEN &th_z = &Tool13_Z
+	IF &ToolIN = 14 THEN &th_z = &Tool14_Z
+	IF &ToolIN = 15 THEN &th_z = &Tool15_Z
+	IF &ToolIN = 16 THEN &th_z = &Tool16_Z
+	IF &ToolIN = 17 THEN &th_z = &Tool17_Z
+	IF &ToolIN = 18 THEN &th_z = &Tool18_Z
+	IF &ToolIN = 19 THEN &th_z = &Tool19_Z
+	IF &ToolIN = 20 THEN &th_z = &Tool20_Z
+	IF &ToolIN = 21 THEN &th_z = &Tool21_Z
+	IF &ToolIN = 22 THEN &th_z = &Tool22_Z
+	IF &ToolIN = 23 THEN &th_z = &Tool23_Z
+	IF &ToolIN = 24 THEN &th_z = &Tool24_Z
 
     VA,,,%(3)-&th_z,,,,,&th_z
 
@@ -60,15 +60,15 @@ FINISHINIT:
 
 'Set the contact switch action ... Plate NOW SET FOR Input Switch #1
     ON INP(1,1) GOSUB CONTACT1
-      JS,,&jogZset	   		 'Change jog speed to .75
+      JS,,&zTopJogSpeed   		 'Change jog speed to .75
 
-	JZ, -&bigZ
+	JZ, -&zSearch
 
     ON INP(1,1) GOSUB CONTACT2 'this is where we'll go on contact with plate
 
-      MS,,&moveZset	    	 'Change move speed to .75
+      MS,,&zTopJogSpeed	    	 'Change move speed to .75
 
-	MZ, -&bigZ
+	MZ, -&zSearch
 
 'We're done with all moves so reset speeds
     VS,&start_XYmove_Speed,&start_Zmove_speed,,,&start_XYjog_Speed,&start_Zjog_speed         '... and assign slower speeds
@@ -77,7 +77,7 @@ FINISHINIT:
 
     VA,,,,,,,,0             'Return to Table Base Coordinate system
 
-    JZ, %(3)+ &ZUP 'Jog to &ZUP to clear plate
+    JZ, %(3)+ &zBackoff 'Jog to &ZUP to clear plate
   
     FP, &ATC_Writer
 
@@ -92,7 +92,7 @@ CONTACT1:
   'We hit the plate ! 
   ON INP(1,0)   'First set switch to nothing to prevent secondary trigger
   PAUSE .2
-  JZ, %(3)+&zClearMove  'Pull-down SLIGHTLY ... 
+  JZ, %(3)+&zBackoff  'Pull-down SLIGHTLY ... 
   'Now We're Ready to Make Slow Move for Accurate Reading
   PAUSE .2
  RETURN
@@ -108,7 +108,7 @@ CONTACT2:
 
 CONTACTZ:
   ON INP(1,0)
-  JZ,%(3)-&zClearMove
+  JZ,%(3)-&zBackoff
  RETURN
 
 Getoffprox:

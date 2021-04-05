@@ -63,13 +63,22 @@ Eval_Offset:
     IF &ToolIN=6 THEN GOSUB ck_tool6
     IF &ToolIN=7 THEN GOSUB ck_tool7
     IF &ToolIN=8 THEN GOSUB ck_tool8
-
     IF &ToolIN=9 THEN GOSUB ck_tool9
     IF &ToolIN=10 THEN GOSUB ck_tool10
     IF &ToolIN=11 THEN GOSUB ck_tool11
     IF &ToolIN=12 THEN GOSUB ck_tool12
     IF &ToolIN=13 THEN GOSUB ck_tool13
     IF &ToolIN=14 THEN GOSUB ck_tool14
+	IF &ToolIN=15 THEN GOSUB ck_tool15
+	IF &ToolIN=16 THEN GOSUB ck_tool16
+	IF &ToolIN=17 THEN GOSUB ck_tool17
+	IF &ToolIN=18 THEN GOSUB ck_tool18
+	IF &ToolIN=19 THEN GOSUB ck_tool19
+	IF &ToolIN=20 THEN GOSUB ck_tool20
+	IF &ToolIN=21 THEN GOSUB ck_tool21
+	IF &ToolIN=22 THEN GOSUB ck_tool22
+	IF &ToolIN=23 THEN GOSUB ck_tool23
+	IF &ToolIN=24 THEN GOSUB ck_tool24
 
 
 
@@ -82,12 +91,10 @@ ck_tool0:
   &test_th = &Tool0_Z + &zOffset                                 'Expected TBC Offset for Z
 RETURN
 ck_tool1:
-
   &zOffset = %(8) - &Tool1_Z        'Ryan added this
   &test_th= &Tool1_Z + &zOffset                                 'Expected TBC Offset for Z
 RETURN
 ck_tool2:
-
   &zOffset = %(8) - &Tool2_Z        'Ryan added this
   &test_th= &Tool2_Z + &zOffset                                 'Expected TBC Offset for Z
 RETURN
@@ -138,4 +145,44 @@ RETURN
 ck_tool14:
   &zOffset = %(8) - &Tool14_Z        'Ryan added this
   &test_th= &Tool14_Z + &zOffset                                 'Expected TBC Offset for Z
+RETURN
+ck_tool15:
+  &zOffset = %(8) - &Tool15_Z        'Ryan added this
+  &test_th= &Tool15_Z + &zOffset                                 'Expected TBC Offset for Z
+RETURN
+ck_tool16:
+  &zOffset = %(8) - &Tool16_Z        'Ryan added this
+  &test_th= &Tool16_Z + &zOffset                                 'Expected TBC Offset for Z
+RETURN
+ck_tool17:
+  &zOffset = %(8) - &Tool17_Z        'Ryan added this
+  &test_th= &Tool17_Z + &zOffset                                 'Expected TBC Offset for Z
+RETURN
+ck_tool18:
+  &zOffset = %(8) - &Tool18_Z        'Ryan added this
+  &test_th= &Tool18_Z + &zOffset                                 'Expected TBC Offset for Z
+RETURN
+ck_tool19:
+  &zOffset = %(8) - &Tool19_Z        'Ryan added this
+  &test_th= &Tool19_Z + &zOffset                                 'Expected TBC Offset for Z
+RETURN
+ck_tool20:
+  &zOffset = %(8) - &Tool20_Z        'Ryan added this
+  &test_th= &Tool20_Z + &zOffset                                 'Expected TBC Offset for Z
+RETURN
+ck_tool21:
+  &zOffset = %(8) - &Tool21_Z        'Ryan added this
+  &test_th= &Tool21_Z + &zOffset                                 'Expected TBC Offset for Z
+RETURN
+ck_tool22:
+  &zOffset = %(8) - &Tool22_Z        'Ryan added this
+  &test_th= &Tool22_Z + &zOffset                                 'Expected TBC Offset for Z
+RETURN
+ck_tool23:
+  &zOffset = %(8) - &Tool23_Z        'Ryan added this
+  &test_th= &Tool23_Z + &zOffset                                 'Expected TBC Offset for Z
+RETURN
+ck_tool24:
+  &zOffset = %(8) - &Tool24_Z        'Ryan added this
+  &test_th= &Tool24_Z + &zOffset                                 'Expected TBC Offset for Z
 RETURN
