@@ -1,0 +1,152 @@
+'This file sets up all variables for running ATC
+&unitMultiplier = 1
+If %(25) = 0 Then GoTo SETUPVALUES
+&unitMultiplier = 25.4
+
+SETUPVALUES:
+	'Homing routine values
+	PAUSE
+
+	&zBackoff = 0.5 * &unitMultiplier
+	&zSearch = 36.0 * &unitMultiplier
+	&zSlowApproachSpeed = 0.4 * &unitMultiplier
+	&zTopApproachSpeed = 0.5 * &unitMultiplier
+	&zTopJogSpeed = 1.0 * &unitMultiplier
+
+	&xyBackoff = 2.0 * &unitMultiplier
+	&xySearch = 200.0 * &unitMultiplier
+	&xySlowApproachSpeed = 0.4 * &unitMultiplier
+	&xyTopApproachSpeed = 1.0 * &unitMultiplier
+	&xyTopJogSpeed = 4.0 * &unitMultiplier
+
+	'Toolchange values
+	&thClearance = 0.5 * &unitMultiplier 'clearance above toolholder during dropoff
+
+    &zOffset = 0
+    &th_z = 0
+	&bigZ = 16
+	&jogZset = 1
+	&moveZset = .75
+    &move_off_Zswitch = .25 'Used in ATC_XYZ_home -- back off from Z prox switch for second pass. 
+    &big_move = -200 'Used in ATC_XYZ_Home.sbp for X,Y and Z axes first moves to find prox
+    &small_move = -15
+	&clear = 0.25 'Used in ATC_XYZ_Home -- added to Y-offset from Y prox to send tool to a safe location where it won't hit any tool holders while it moves to home the X Axis. 
+	&safe = 2 'Used in ATC_XYZ_Home -- back off from X or Y prox switch for second pass.
+	&bigZclear = 36 * &unitMultiplier 'big move for ATC_Zzero homing move
+	&bigZplunge = -30 * &unitMultiplier
+	&zZeroMoveSpeed = .75 * &unitMultiplier 'Used in ATC_Zzero for z axis move speed.
+	&safeDTone = 2 * &unitMultiplier
+	&safeDTtwo = 1.5 * &unitMultiplier
+
+    If &ATC = 2 Then GoTo PRS4ATC
+	If &ATC = 3 Then GoTo DTATC 
+	If &ATC = 4 Then GoTo DTMATC
+
+PRS3ATC:
+	'Toolbar dimension values
+	&ATC_holderHeight = 2.037 * &unitMultiplier 'Used in calibration
+    &holder_radius = .75 * &unitMultiplier 'Used in calibration
+    &stylus_dia = .25 * &unitMultiplier 'Used in calibration
+	&nextY = 12 * &unitMultiplier 'Used in calibration
+	&clipHeightClearance = 2 * &unitMultiplier 'Used in calibration
+	&thClearance = 0.5 * &unitMultiplier 'clearance above toolholder during dropoff and pickup
+    &safe_lift = 1  * &unitMultiplier 'Used in calibration
+    &newspeed_XY = .4 * &unitMultiplier 'Used in calibration
+    &newspeed_Z = .4 * &unitMultiplier 'Used in calibration
+	&tableLength = 0 * &unitMultiplier 'Used in calibration
+	&yInitOffset = 1.5 * &unitMultiplier 'Used in calibration
+	
+	&safeEdge = .25 * &unitMultiplier 'Used in calibration
+	
+	&bigZclear = 36 * &unitMultiplier 'Used in calibration
+	&bigZplunge = -30 * &unitMultiplier
+	&ZUP = .5 * &unitMultiplier 'Pull up from pressure plate during bit measurement
+	&ZforVA = -0.5 'pull away from z prox during bit measurement
+	&ATC_clipSafe = -3 * &unitMultiplier 'Change + to - if tool clips are on left side
+	
+	'Prox switch setup values
+    &X_Prox = 2
+	&Y_Prox = 3
+	&Z_Prox = 5
+
+	&X_State = 0
+	&Y_State = 0
+	&Z_State = 0
+
+	GoTo ENDTHIS
+PRS4ATC:
+	&ATC_holderHeight = 2.037 * &unitMultiplier 'Used in calibration
+    &holder_radius = .75 * &unitMultiplier 'Used in calibration
+    &stylus_dia = .25 * &unitMultiplier 'Used in calibration
+	&nextY = 12 * &unitMultiplier 'Used in calibration
+	&clipHeightClearance = 2 * &unitMultiplier 'Used in calibration
+	&thClearance = 0.5 * &unitMultiplier 'clearance above toolholder during dropoff and pickup
+    &safe_lift = 1  * &unitMultiplier 'Used in calibration
+    &newspeed_XY = .4 * &unitMultiplier 'Used in calibration
+    &newspeed_Z = .4 * &unitMultiplier 'Used in calibration
+	&tableLength = 0 * &unitMultiplier 'Used in calibration
+	&yInitOffset = 1.5 * &unitMultiplier 'Used in calibration
+	
+	&safeEdge = .25 * &unitMultiplier 'Used in calibration
+	&bigZclear = 36 * &unitMultiplier
+	&bigZplunge = -30 * &unitMultiplier
+	&ZUP = .5 * &unitMultiplier
+	&ATC_clipSafe = 1.5 * &unitMultiplier 
+    &ATC_clipClearX = 8 * &unitMultiplier
+    &ATC_clipClearY = 2.25 * &unitMultiplier
+    &Prox_State = 0
+	&X_Prox = 2
+	&Y_Prox = 3
+	&Z_Prox = 5
+
+	&X_State = 0
+	&Y_State = 0
+	&Z_State = 0
+	GoTo ENDTHIS
+DTATC:
+
+DTMATC:
+	&bigZclear = 8 * &unitMultiplier
+	&bigZplunge = -6 * &unitMultiplier
+	&ZUP = 2.5 * &unitMultiplier
+	&ATC_clipSafe = 0 * &unitMultiplier 
+    &Prox_State = 1
+	&TOOLBAR_LENGTH = 15 * &unitMultiplier 
+	&TOOL_OFFSET = 3 * &unitMultiplier 
+	&SAFETY = 3 * &unitMultiplier 
+	&safeDTone = 2
+	&safeDTtwo = 1.5
+	&X_Prox = 3
+	&Y_Prox = 2
+	&Z_Prox = 3
+
+	&X_State = 1
+	&Y_State = 1
+	&Z_State = 1
+	GoTo ENDTHIS
+ENDTHIS:
+end
+
+GetInchSpeedLimits:
+    &TopXY_ApproachSpeed = 1.0
+    &TopXY_JogSpeed = 4.0
+    &TopZ_ApproachSpeed = 0.5
+    &TopZ_JogSpeed = 1.0
+    &move_off_Zswitch = .25
+    &big_move = -200
+    &small_move = -15
+	&clear = 0.25
+	&safe = 2
+
+ Return
+
+GetMetricSpeedLimits:
+    &TopXY_ApproachSpeed = 25.4
+    &TopXY_JogSpeed = 101.6
+    &TopZ_ApproachSpeed = 12.5
+    &TopZ_JogSpeed = 101.6
+    &move_off_Zswitch = 12
+    &big_move = -5000
+    &small_move = -250
+	&clear = 6.35
+	&safe = 50.8
