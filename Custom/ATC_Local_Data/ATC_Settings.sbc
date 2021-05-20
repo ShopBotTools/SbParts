@@ -1,11 +1,11 @@
 'This file sets up all variables for running ATC
 &unitMultiplier = 1
 If %(25) = 0 Then GoTo SETUPVALUES
+'using metric values
+PAUSE
 &unitMultiplier = 25.4
 
 SETUPVALUES:
-	'Homing routine values
-	PAUSE
 
 	&zBackoff = 0.5 * &unitMultiplier
 	&zSearch = 36.0 * &unitMultiplier
@@ -24,14 +24,14 @@ SETUPVALUES:
 
     &zOffset = 0
     &th_z = 0
-	&bigZ = 16
-	&jogZset = 1
-	&moveZset = .75
+	&bigZ = 16 * &unitMultiplier
+	&jogZset = 1 * &unitMultiplier
+	&moveZset = .75 * &unitMultiplier
     &move_off_Zswitch = .25 'Used in ATC_XYZ_home -- back off from Z prox switch for second pass. 
-    &big_move = -200 'Used in ATC_XYZ_Home.sbp for X,Y and Z axes first moves to find prox
-    &small_move = -15
-	&clear = 0.25 'Used in ATC_XYZ_Home -- added to Y-offset from Y prox to send tool to a safe location where it won't hit any tool holders while it moves to home the X Axis. 
-	&safe = 2 'Used in ATC_XYZ_Home -- back off from X or Y prox switch for second pass.
+    &big_move = -200 * &unitMultiplier 'Used in ATC_XYZ_Home.sbp for X,Y and Z axes first moves to find prox
+    &small_move = -15 * &unitMultiplier
+	&clear = 0.25 * &unitMultiplier 'Used in ATC_XYZ_Home -- added to Y-offset from Y prox to send tool to a safe location where it won't hit any tool holders while it moves to home the X Axis. 
+	&safe = 2 * &unitMultiplier 'Used in ATC_XYZ_Home -- back off from X or Y prox switch for second pass.
 	&bigZclear = 36 * &unitMultiplier 'big move for ATC_Zzero homing move
 	&bigZplunge = -30 * &unitMultiplier
 	&zZeroMoveSpeed = .75 * &unitMultiplier 'Used in ATC_Zzero for z axis move speed.
@@ -91,7 +91,7 @@ PRS4ATC:
 	&bigZclear = 36 * &unitMultiplier
 	&bigZplunge = -30 * &unitMultiplier
 	&ZUP = .5 * &unitMultiplier
-	&ATC_clipSafe = 1.5 * &unitMultiplier 
+	&ATC_clipSafe = 1.375 * &unitMultiplier 'Change + to - if tool clips are on left side
     &ATC_clipClearX = 8 * &unitMultiplier
     &ATC_clipClearY = 2.25 * &unitMultiplier
     &Prox_State = 0
@@ -117,7 +117,7 @@ DTMATC:
 	&safeDTone = 2
 	&safeDTtwo = 1.5
 	&X_Prox = 3
-	&Y_Prox = 2
+	&Y_Prox = 3
 	&Z_Prox = 3
 
 	&X_State = 1

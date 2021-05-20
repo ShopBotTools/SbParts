@@ -55,7 +55,11 @@
 
     &oldtool=0
     &newtool=-1
-	
+	&exitX = 0
+	&exitY = 0
+	&exitZ = 0
+
+
     FP, c:\SbParts\Custom\ATC\ATC_Load_All_Values.sbp
     SF,0 '###?? How to handle limit checking if already off by user choice??
 
@@ -131,6 +135,12 @@ Position_Z:
 	If &ToolIN=24 Then GoTo settool24
     
 Droptool:
+	If &ATC = 3 Then goto DTATC1
+	If &ATC = 4 Then goto DTATC1
+	&enterX = &tx - &ATC_clipClearX
+	&enterY = &ty  - &ATC_clipClearY
+	GoSub PlanEnter
+	DTATC1:
     If &Tool = &ToolIN Then GoTo Finish_ToolChange 'NO NEED TO DO TOOL CHANGE
     If &ATC = 2 Then GoTo 3PRS4     
 	J2, &sx, &ty 'Jog to X zero and Y midpoint between tool holders
@@ -146,7 +156,7 @@ Droptool:
 
 3PRS4:    
     'PRS4 ATCs
-    J2, &tx - &ATC_clipClearX , &ty  - &ATC_clipClearY  'Move inbetween clips
+    J2, &enterX , &enterY  'Move inbetween clips
     JX, &sx
     JY, &ty          'Jog to X zero and Y midpoint between tool holders
 	Goto Clip
@@ -159,11 +169,11 @@ Clip:
     PAUSE 0.1
 	'If &ATC = 3 Then pause 1 
 	'If &ATC = 4 Then pause 1
+	If %(58) = 0 Then GoTo bartoperror
     MZ, %(3)+ &thClearance           'Move up to clear toolholder
     PAUSE 0.2    
 	'If &ATC = 3 Then SO,7,0 
 	'If &ATC = 4 Then SO,7,0
-    If %(58) = 0 Then GoTo bartoperror    
     SO, 8,0               'Close toolholder chuck
     PAUSE 0.2
     If %(58) = 1 Then GoTo barboterror
@@ -208,6 +218,13 @@ End                       'Exit if invalid tool number
 
 Changetool:
     'Setup new Z height of bit relative to table surface from Table Base Coordinates
+	If &ATC = 3 Then goto DTATC2
+	If &ATC = 4 Then goto DTATC2
+	&exitX = &tx - &ATC_clipClearX
+	&exitY = &ty  - &ATC_clipClearY
+	If &EXITPLANNING < 0 THEN GoSub PlanExit
+	If &EXITPLANNING > 0 THEN GoSub ExitLeft
+	DTATC2:
     &new_curZ = %(3) - ((&th + &zOffset) - %(8)) 'update to current Z
     VA,,,&new_curZ,,,,,&th + &zOffset
     'Write all updated variables before starting next move
@@ -223,7 +240,7 @@ Changetool:
     'Skip pick up if zero tool number and leave spindle empty
     If &newtool = 0 Then GoTo Finish_ToolChange
     
-    JX, &tx + &ATC_clipSafe  'Jog X to toolholder X THESE 3 LINES HAVE BEEN BROKEN OUT - DP
+    'JX, &tx + &ATC_clipSafe  'Jog X to toolholder X THESE 3 LINES HAVE BEEN BROKEN OUT - DP
     If &ATC = 2 Then GoTo 4PRS4     
     'PRS-PRS3
     J2, &tx, &ty
@@ -233,8 +250,7 @@ Changetool:
     GoTo CT1
 
 4PRS4:    'PRS4 ATCs
-    JY, &ty
-    JX, &tx
+    J2, &tx, &ty
 
 CT1:   
 	JZ, &clipHeight + &thClearance     'Jog Z to 1 inch over toolholder height
@@ -245,7 +261,7 @@ CT1:
     MZ, &clipHeight          'Move to toolholder height  
     SO, 8,0                  'Close toolholder chuck 
     PAUSE 0.2   
-
+	If %(58) = 1 Then GoTo barboterror
     MX, &sx
 
     PAUSE .2
@@ -260,8 +276,8 @@ CT1:
       GoTo Finish_ToolChange
     5PRS4:    'PRS4 ATCs
 	  J2, &sx, &ty
-	  JY, &ty  - &ATC_clipClearY
-	  JX, &tx - &ATC_clipClearX  'Move inbetween clips
+	  JY, &exitY
+	  JX, &exitX 
       &Dropped = 0
 
 Finish_ToolChange:
@@ -618,3 +634,35 @@ Return
 CheckToolBar:
 If %(107) = 1 then goto RetractBar
 Return
+
+PlanExit:
+'Plan Exit
+PAUSE
+&clipX = &tx + &xOffset + %(6) + %(61)
+IF &NEXTX >= &clipX THEN goto ExitRight
+IF &NEXTX < &clipX THEN goto ExitLeft
+ExitRight:
+'Going Right
+PAUSE
+&exitX = &tx + &ATC_clipSafe
+&exitY = &ty
+goto FinishExitPlan
+ExitLeft:
+&exitX = &tx - &ATC_clipClearX
+&exitY = &ty  - &ATC_clipClearY
+FinishExitPlan:
+return
+
+PlanEnter:
+IF %(1) >= &tx THEN goto EnterRight
+IF %(1) < &tx THEN goto EnterLeft
+EnterRight:
+&enterX = &tx + &ATC_clipSafe
+&enterY = &ty
+goto FinishEnterPlan
+EnterLeft:
+&enterX = &tx - &ATC_clipClearX
+&enterY = &ty  - &ATC_clipClearY
+FinishEnterPlan:
+return
+

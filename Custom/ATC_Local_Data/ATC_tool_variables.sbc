@@ -1,9 +1,9 @@
-&ATC_zZeroX=925.735
-&ATC_zZeroY= 6.147
-&ToolIN = 2
+&ATC_zZeroX=915.162
+&ATC_zZeroY= -34.690
+&ToolIN = 6
 &UseAux = 0
-&Dropped =0
-&zOffset = 44.393
+&Dropped =1
+&zOffset = 5.2228959599924
 &xOffset = 0
 &YOffset = 0
 &PlateOffset = 5.2228959599924

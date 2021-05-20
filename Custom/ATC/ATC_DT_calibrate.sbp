@@ -1,6 +1,7 @@
 'This will calibraite the and record the tool clip locations for a Desktop ATC
 'It will extend the tool bar then open the key pad for the user to move the move
 'X,Y and Z into the number one tool clip.
+FP, c:\SbParts\Custom\ATC\ATC_Load_All_Values.sbp
 if %(25) = 1 then GoTo METRICUNITS
 &Z_UP = 2.5
 &TOOLBAR_LENGTH = 15

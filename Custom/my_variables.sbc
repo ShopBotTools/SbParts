@@ -29,7 +29,7 @@
 
 'These values are used in the ZZero routine
 &my_hasZzero = 1
-&my_ZzeroThickness = 0.121 
+&my_ZzeroThickness = 3.0734 
 &my_ZzeroInput = 1
 &my_ZzeroSafeZ = 1.0 
 &my_hasZProx = 1
@@ -42,8 +42,8 @@
 'These values are used by the XYZero program
 &my_hasProx = 1
 &my_XYzeroSafeZ=1
-&my_XYzeroOffsetX = -1.27 
-&my_XYzeroOffsetY = -1.27 
+&my_XYzeroOffsetX = -32.258 
+&my_XYzeroOffsetY = -32.258 
 &my_XYzeroOffsetZ=1
 &my_XYzeroOffsetA = -265.000 
 &my_XYzeroOffsetB = -12.0 
@@ -60,7 +60,7 @@
 
 
 'Change this to 1 if you have either multiple cutting heads...2 routers for instance... or a drill head
-&my_hasMultiple = 1
+&my_hasMultiple = 0
 'Indicates number of ShopBot drill head(s)
 &My_NumberOfDrills = 0
 
@@ -76,32 +76,32 @@
 &my_YmmDrilloffset_T3=0'Inputthedistanceinmillimetersbetweenrouter1anddrillhead1intheYdirectionhere.
 
 'PRS Drills
-&my_XinDrilloffset_T31 = 6 'Inputthedistanceininchesbetweenrouter1anddrillhead1intheXdirectionhere.
-&my_XmmDrilloffset_T31 = 152.4 'Inputthedistanceinmillimetersbetweenrouter1anddrillhead1intheXdirectionhere.
+&my_XinDrilloffset_T31 = 0.2362 'Inputthedistanceininchesbetweenrouter1anddrillhead1intheXdirectionhere.
+&my_XmmDrilloffset_T31 = 6 'Inputthedistanceinmillimetersbetweenrouter1anddrillhead1intheXdirectionhere.
 &my_YinDrilloffset_T31 = 0 'Inputthedistanceininchesbetweenrouter1anddrillhead1intheYdirectionhere.
 &my_YmmDrilloffset_T31 = 0 'Inputthedistanceinmillimetersbetweenrouter1anddrillhead1intheYdirectionhere.
 &my_ZinDrilloffset_T31=0	'Inputthedistanceininchesbetweenrouter1anddrillhead1intheZdirectionhere.
 &my_ZmmDrilloffset_T31=0	'Inputthedistanceinmillimetersbetweenrouter1anddrillhead1intheZdirectionhere.
 &my_DrillOutput31=5		'SettheoutputforthecorrectDrill.
 
-&my_XinDrilloffset_T32 = 6 'Inputthedistanceininchesbetweenrouter1anddrillhead2intheXdirectionhere.
-&my_XmmDrilloffset_T32 = 152.4 'Inputthedistanceinmillimetersbetweenrouter1anddrillhead2intheXdirectionhere.
+&my_XinDrilloffset_T32 = 0.2362 'Inputthedistanceininchesbetweenrouter1anddrillhead2intheXdirectionhere.
+&my_XmmDrilloffset_T32 = 6 'Inputthedistanceinmillimetersbetweenrouter1anddrillhead2intheXdirectionhere.
 &my_YinDrilloffset_T32 = 0 'Inputthedistanceininchesbetweenrouter1anddrillhead2intheYdirectionhere.
 &my_YmmDrilloffset_T32 = 0 'Inputthedistanceinmillimetersbetweenrouter1anddrillhead2intheYdirectionhere.
 &my_ZinDrilloffset_T32=0	'Inputthedistanceininchesbetweenrouter1anddrillhead2intheZdirectionhere.
 &my_ZmmDrilloffset_T32=0	'Inputthedistanceinmillimetersbetweenrouter1anddrillhead2intheZdirectionhere.
 &my_DrillOutput32=6		'SettheoutputforthecorrectDrill.
 
-&my_XinDrilloffset_T33 = 6 'Inputthedistanceininchesbetweenrouter1anddrillhead3intheXdirectionhere.
-&my_XmmDrilloffset_T33 = 152.4 'Inputthedistanceinmillimetersbetweenrouter1anddrillhead3intheXdirectionhere.
+&my_XinDrilloffset_T33 = 0.2362 'Inputthedistanceininchesbetweenrouter1anddrillhead3intheXdirectionhere.
+&my_XmmDrilloffset_T33 = 6 'Inputthedistanceinmillimetersbetweenrouter1anddrillhead3intheXdirectionhere.
 &my_YinDrilloffset_T33 = 0 'Inputthedistanceininchesbetweenrouter1anddrillhead3intheYdirectionhere.
 &my_YmmDrilloffset_T33 = 0 'Inputthedistanceinmillimetersbetweenrouter1anddrillhead3intheYdirectionhere.
 &my_ZinDrilloffset_T33=0	'Inputthedistanceininchesbetweenrouter1anddrillhead3intheZdirectionhere.
 &my_ZmmDrilloffset_T33=0	'Inputthedistanceinmillimetersbetweenrouter1anddrillhead3intheZdirectionhere.
 &my_DrillOutput33=7		'SettheoutputforthecorrectDrill.
 
-&my_XinDrilloffset_T34 = 6 'Inputthedistanceininchesbetweenrouter1anddrillhead4intheXdirectionhere.
-&my_XmmDrilloffset_T34 = 152.4 'Inputthedistanceinmillimetersbetweenrouter1anddrillhead4intheXdirectionhere.
+&my_XinDrilloffset_T34 = 0.2362 'Inputthedistanceininchesbetweenrouter1anddrillhead4intheXdirectionhere.
+&my_XmmDrilloffset_T34 = 6 'Inputthedistanceinmillimetersbetweenrouter1anddrillhead4intheXdirectionhere.
 &my_YinDrilloffset_T34 = 0 'Inputthedistanceininchesbetweenrouter1anddrillhead4intheYdirectionhere.
 &my_YmmDrilloffset_T34 = 0 'Inputthedistanceinmillimetersbetweenrouter1anddrillhead4intheYdirectionhere.
 &my_ZinDrilloffset_T34=0	'Inputthedistanceininchesbetweenrouter1anddrillhead4intheZdirectionhere.
@@ -109,14 +109,14 @@
 &my_DrillOutput34=8		'SettheoutputforthecorrectDrill.
 
 ' these are used if you have multiple cutting heads...maybe 2 routers
-&my_XinHead2offset = 6 'Inputthedistanceininchesbetweenrouter1androuter2intheXdirectionhere.
-&my_XmmHead2offset = 152.4 'Inputthedistanceinmillimetersbetweenrouter1androuter2intheXdirectionhere.
+&my_XinHead2offset = 0.2362 'Inputthedistanceininchesbetweenrouter1androuter2intheXdirectionhere.
+&my_XmmHead2offset = 6 'Inputthedistanceinmillimetersbetweenrouter1androuter2intheXdirectionhere.
 &my_YinHead2offset = 0 'Inputthedistanceininchesbetweenrouter1androuter2intheYdirectionhere.
 &my_YmmHead2offset = 0 'Inputthedistanceinmillimetersbetweenrouter1androuter2intheYdirectionhere.
 
 'Manual Tool Change numbers
 &MaxDepth = -1 
-&ATC = 2 
+&ATC = 4 
 &z_tool=1
 &a_tool=21
 &z_drill_bit2=31
