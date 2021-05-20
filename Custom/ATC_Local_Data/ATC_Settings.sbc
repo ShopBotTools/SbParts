@@ -1,8 +1,6 @@
 'This file sets up all variables for running ATC
 &unitMultiplier = 1
 If %(25) = 0 Then GoTo SETUPVALUES
-'using metric values
-PAUSE
 &unitMultiplier = 25.4
 
 SETUPVALUES:
