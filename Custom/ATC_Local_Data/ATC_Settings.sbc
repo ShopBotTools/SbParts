@@ -10,7 +10,8 @@ SETUPVALUES:
 	&zSlowApproachSpeed = 0.4 * &unitMultiplier
 	&zTopApproachSpeed = 0.5 * &unitMultiplier
 	&zTopJogSpeed = 1.0 * &unitMultiplier
-
+    &manualchgX = 5.0 * &unitMultiplier
+    &manualchgY = 5.0 * &unitMultiplier
 	&xyBackoff = 2.0 * &unitMultiplier
 	&xySearch = 200.0 * &unitMultiplier
 	&xySlowApproachSpeed = 0.4 * &unitMultiplier

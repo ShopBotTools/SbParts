@@ -11,10 +11,15 @@
     &ATC_Variables = &ATC_local_data_path & "ATC_Variables.sbc"
     &ATC_Toolvar_outname = &ATC_local_data_path & "ATC_Tool_Variables.sbc"
 	&ATC_Settings = &ATC_local_data_path & "ATC_Settings.sbc"
+	&ATC_Extra_Tools = &ATC_local_data_path & "ATC_Extra_Tools.sbc"
+	&ATC_Extra_Tools_Writer = &ATC_local_data_path & "ATC_Extra_Tools_WRITER.sbc"
     &ATC_Writer = &ATC_folder_path & "ATC_Write_Tool_Variables.sbp"
     &ATC_Restore_Settings = &ATC_folder_path & "ATC_restore_settings.sbp"
     &ATC_Check_Status = &ATC_folder_path & "ATC_check_status.sbp"
     &ATC_Run_ATC = &ATC_folder_path & "ATC.sbp"
+	&ATC_Manual_Change = &ATC_folder_path & "ATC_Manual_Change.sbp"
+	&ATC_Zzero = &ATC_folder_path & "ATC_Zzero.sbp"
+	&ATC_Change = &ATC_folder_path & "ATC_change.sbp"
 
     FP, &ATC_Variables
     FP, &ATC_Toolvar_outname

@@ -133,7 +133,7 @@ Position_Z:
 	If &ToolIN=22 Then GoTo settool22
 	If &ToolIN=23 Then GoTo settool23
 	If &ToolIN=24 Then GoTo settool24
-    
+	GoTo droptoolManual    
 Droptool:
 	If &ATC = 3 Then goto DTATC1
 	If &ATC = 4 Then goto DTATC1
@@ -210,7 +210,7 @@ ZeroToolDrop:
 	If &newtool=22 Then GoTo settool22
 	If &newtool=23 Then GoTo settool23
 	If &newtool=24 Then GoTo settool24
-	
+	GoTo loadtoolManual
 
     GoSub Exit_Resets ''##?? Error Handler needed here??
 
@@ -549,8 +549,31 @@ settool14:
   &sx = &tx + &ATC_clipSafe
   If &Dropped = 0 Then GoTo Droptool
  GoTo Changetool
+
+droptoolManual:
+   &tx= &manualchgX - %(6) - %(61)
+   &ty= &manualchgY - %(7) - %(62)
+   &ATC_safeclear = (%(3) + (-1 *((%(3) + %(8))))) - &zBackoff
+   JZ,&ATC_safeclear
+   J2,&tx, &ty
+   If ATC=1 Then SO,3,1
+   MSGBOX(Remove tool number &ToolIN from the spindle and press OK  ,OKCancel,Change bit?)
+   if &msganswer = Cancel then ENDALL
+   Goto ZeroToolDrop
  
- 
+loadtoolManual:
+   &tx= &manualchgX - %(6) - %(61)
+   &ty= &manualchgY - %(7) - %(62)
+   &ATC_safeclear = (%(3) + (-1 *((%(3) + %(8))))) - &zBackoff
+   JZ,&ATC_safeclear
+   J2,&tx, &ty
+   If ATC=1 Then SO,3,1
+   MSGBOX(Insert &ToolName tool number &tool into spindle and press OK  ,OKCancel,Change bit?)
+   if &msganswer = Cancel then ENDALL
+
+   FP,&ATC_Manual_Change
+
+   GOTO Finish_ToolChange
 
 toolerror:
   GoSub Exit_Resets

@@ -1,0 +1,162 @@
+SO,1,0        'Make sure spindle is not running
+&th = 0
+&temp_tool = 0
+&temp_length = 0
+OPEN &ATC_Extra_Tools FOR INPUT AS #1
+tool_loop:
+   INPUT #1, &temp_tool , &temp_length
+   IF &temp_tool = &newtool THEN GOTO end_tool_loop
+   GOTO tool_loop
+end_tool_loop:
+   &th = &temp_length
+CLOSE #1
+
+MSGBOX(Bit number &newtool length currently set to &th -- would you like to remeasure this bit? ,YesNoCancel,KeyPad?)
+if &msganswer = Cancel then ENDALL
+if &msganswer = YES then GoSub manual_chg_measure
+
+
+GOTO Finish_ToolChange
+
+manual_chg_measure:
+   MSGBOX(Would you like to use the fixed z zero plate to measure bit length? ,YesNoCancel,KeyPad?)
+   if &msganswer = Cancel then ENDALL
+   if &msganswer = YES then GoTo bit_measure
+   MSGBOX(Bit measurement will use spindle mounted Z Zero plate. Use key Board to move X Y to preferred Z zero point? ,YesNoCancel,KeyPad?)
+   if &msganswer = Cancel then ENDALL
+   if &msganswer = YES then GoSub OPENSK
+   GOTO Zero_Z
+
+bit_measure:
+
+ZZERO_INITVARS:
+    'Initialize
+  &Ztop = 0
+  &TotalZ = 0
+  &zHeight = 0
+TOP:
+  INPUT "Bit number to Zero:" &tool
+
+  FP, C:\SbParts\Custom\ATC\ATC.SBP
+  MS,,&zTopApproachSpeed    'Change move speed to .75
+
+  SF, 0         'Deactivate software limits
+  VN, 0        'Turn limit switch OFF
+
+  'Calibrate using Prox switch on Z
+  If &ATC = 4 Then GoSub EnterSafeDTMATC
+  ON INP(&Z_Prox , &Z_State) GoSub CONTACTZ1
+    MZ, &zSearch
+
+  ON INP(&Z_Prox , &Z_State) GoSub CONTACTZ2
+    MZ, &zSearch
+  If &ATC = 4 Then GoSub LeaveSafeDTMATC
+
+  VN, 0        'Turn limit switch OFF
+
+  VA,,,-&zBackoff,,,,,0
+  J2, &sx , &ATC_zZeroY - %(7)
+  JY, &ATC_zZeroY - %(7)       'XY Location for Z Zeroing (Enter X&Y Location of Fixed Zero plate)
+  JX, &ATC_zZeroX - %(6)
+
+  If &ATC=1 Then SO,3,1
+  If &ATC=3 Then SO,7,1
+  If &ATC=4 Then SO,7,1
+  'Press ENTER when clip is on bit shank and ready to zero
+  PAUSE .5
+
+'Set the contact switch action ... Plate NOW SET FOR Input Switch #1
+  ON INP(1,1) GoSub CONTACT1
+    MZ, -&zSearch
+   
+   VN, 1        'Turn limit switch ON
+  
+  &newZheight = &zHeight + &ZOffset
+  VA,,,%(3)-&newZheight,,,,,&newZheight  'Set Z height of bit relative to table surface from Table Base Coordinates
+
+ ' MX, &sx
+  SO,3,1
+  If &ATC = 3 THEN SO,7,0
+  If &ATC = 4 THEN SO,7,0
+  
+  GOTO Finish_ToolChange
+
+Zero_Z:
+   'Place Z Zero clip on bit and Z Zero plate beneath bit
+   PAUSE
+   ON INP(&Z_prox , &Z_state) GoSub CONTACTZ1
+    MZ, &bigZclear
+
+   ON INP(&Z_prox , &Z_state) GoSub CONTACTZ2
+    MZ, &bigZclear
+
+    VN, 0        'Turn limit switch OFF
+    VA,,,-&zBackoff,,,,,0
+    'Press ENTER when clip is on bit shank and ready to zero
+    PAUSE .5
+	ON INP(1,1) GoSub CONTACT1
+    MZ, -&zSearch
+
+   PRINT, "Tool #" & &Tool & " height = " & &zHeight
+   
+   OPEN &ATC_Extra_Tools_Writer FOR OUTPUT AS #2
+   OPEN &ATC_Extra_Tools FOR INPUT AS #1
+   write1_loop:
+   INPUT #1, &temp_tool , &temp_length
+   IF &temp_tool = &newtool THEN GOSUB edit_value
+   WRITE #2; &temp_tool ; "," ; &temp_length
+   IF &temp_tool = 9999 THEN GOTO end_write1_loop
+   GOTO write1_loop
+   end_write1_loop:
+   CLOSE #1
+   CLOSE #2
+   OPEN &ATC_Extra_Tools_Writer FOR INPUT AS #2
+   OPEN &ATC_Extra_Tools FOR OUTPUT AS #1
+   write2_loop:
+   INPUT #2, &temp_tool , &temp_length
+   WRITE #1; &temp_tool ; "," ; &temp_length
+   IF &temp_tool = 9999 THEN GOTO end_write2_loop
+   GOTO write2_loop
+   end_write2_loop:
+   CLOSE #1
+   CLOSE #2 
+   &ATC_safeclear = (%(3) + (-1 *((%(3) + %(8))))) - &zBackoff
+   JZ, &ATC_safeclear
+
+   Finish_ToolChange:
+   END
+
+
+'SUBROUTINES ==================================================================================================================
+
+CONTACT1:
+'This is our subroutine for action on hitting the plate the first time
+  'We hit the plate ! 
+  ON INP(1,1)   'First set switch to nothing to prevent secondary trigger
+  PAUSE .2
+  
+  &zHeight = %(3)
+  
+  JZ,%(3) + &zBackoff  'Pull-up SLIGHTLY ... 
+  'Now We're Ready to Make Slow Move for Accurate Reading
+  PAUSE .2
+ Return
+
+CONTACTZ1:
+  ON INP(&Z_prox,&Z_state * -1 + 1)
+  JZ,%(3)-&zBackoff
+ Return
+
+CONTACTZ2:
+  ON INP(&Z_prox,&Z_state * -1 + 1)
+  MZ,%(3)-&zBackoff
+  &Ztop = %(3) 
+ Return
+
+edit_value:
+&temp_length = &zHeight
+return
+
+OPENSK:
+	SK
+return

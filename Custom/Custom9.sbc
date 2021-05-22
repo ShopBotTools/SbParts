@@ -18,7 +18,9 @@ IsATC:
 	&modenow = %(22)
 	If &modenow = 1 Then GoTo CHANGEMODE
 
-	FP,C:\SBPARTS\custom\ATC\ATC.sbp
+	C#,90             'Load the my_variables file from with Custom Cut 90
+    C#,89             'Read variables from ATC_Variables and ATC_Tool_Variables
+    FP, &ATC_change
 	GoTo IsDone
 
 CHANGEMODE:

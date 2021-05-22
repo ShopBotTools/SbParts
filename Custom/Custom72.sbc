@@ -17,7 +17,9 @@ If &ATC = 0 Then GoTo IsMTC
 END
 
 IsATC:
-    FP, c:\SbParts\Custom\ATC\ATC_Zzero.SBP
+	C#,90             'Load the my_variables file from with Custom Cut 90
+    C#,89             'Read variables from ATC_Variables and ATC_Tool_Variables
+    FP, &ATC_Zzero
     END
 
 MTC:

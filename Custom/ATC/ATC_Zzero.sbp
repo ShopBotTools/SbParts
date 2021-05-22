@@ -15,7 +15,9 @@ ZZERO_INITVARS:
 TOP:
   INPUT "Bit number to Zero:" &tool
 
-  FP, C:\SbParts\Custom\ATC\ATC.SBP
+  FP, &ATC_Run_ATC
+  IF &Tool > 24 THEN GOTO Endfile
+
   MS,,&zTopApproachSpeed    'Change move speed to .75
 
   SF, 0         'Deactivate software limits
@@ -23,10 +25,10 @@ TOP:
 
   'Calibrate using Prox switch on Z
   If &ATC = 4 Then GoSub EnterSafeDTMATC
-  ON INP(3,1) GoSub CONTACTZ1
+  ON INP(&Z_Prox , &Z_State) GoSub CONTACTZ1
     MZ, &zSearch
 
-  ON INP(3,1) GoSub CONTACTZ2
+  ON INP(&Z_Prox , &Z_State) GoSub CONTACTZ2
     MZ, &zSearch
   If &ATC = 4 Then GoSub LeaveSafeDTMATC
 
@@ -37,8 +39,9 @@ TOP:
   JY, &ATC_zZeroY - %(7)       'XY Location for Z Zeroing (Enter X&Y Location of Fixed Zero plate)
   JX, &ATC_zZeroX - %(6)
 
-  If ATC=1 Then SO,3,1
-  SO,7,1
+  If &ATC=1 Then SO,3,1
+  If &ATC=3 Then SO,7,1
+  If &ATC=4 Then SO,7,1
   'Press ENTER when clip is on bit shank and ready to zero
   PAUSE .5
 
@@ -82,10 +85,13 @@ TOP:
 
  ' MX, &sx
   SO,3,1
-  SO,7,0
+  If &ATC = 3 THEN SO,7,0
+  If &ATC = 4 THEN SO,7,0
   INPUT "Do you wish to zero another cutter <Y or N>: " &gototop
   
   If &gototop = "Y" Then GoTo TOP 
+
+Endfile:
 
  End            'This END statement causes the program to end here without
                 '  dropping through to subroutine
@@ -114,12 +120,12 @@ CONTACT2:
                 '   and we will then encounter the END and leave the file.
 
 CONTACTZ1:
-  ON INP(5,0)
+  ON INP(&Z_Prox , &Z_State)
   JZ,%(3)-&zBackoff
  Return
 
 CONTACTZ2:
-  ON INP(5,0)
+  ON INP(&Z_Prox , &Z_State)
   MZ,%(3)-&zBackoff
   &Ztop = %(3) 
  Return
