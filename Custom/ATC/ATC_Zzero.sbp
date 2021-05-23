@@ -16,7 +16,7 @@ TOP:
   INPUT "Bit number to Zero:" &tool
 
   FP, &ATC_Run_ATC
-  IF &Tool > 24 THEN GOTO Endfile
+  IF &Tool > 34 THEN GOTO Endfile
 
   MS,,&zTopApproachSpeed    'Change move speed to .75
 
@@ -75,6 +75,16 @@ TOP:
   If &Tool = 22 Then &Tool22_Z = &zHeight
   If &Tool = 23 Then &Tool23_Z = &zHeight
   If &Tool = 24 Then &Tool24_Z = &zHeight
+  If &Tool = 25 Then &Tool25_Z = &zHeight
+  If &Tool = 26 Then &Tool26_Z = &zHeight
+  If &Tool = 27 Then &Tool27_Z = &zHeight
+  If &Tool = 28 Then &Tool28_Z = &zHeight
+  If &Tool = 29 Then &Tool29_Z = &zHeight
+  If &Tool = 30 Then &Tool30_Z = &zHeight
+  If &Tool = 31 Then &Tool31_Z = &zHeight
+  If &Tool = 32 Then &Tool32_Z = &zHeight
+  If &Tool = 33 Then &Tool33_Z = &zHeight
+  If &Tool = 34 Then &Tool34_Z = &zHeight
   
   FP, &ATC_Writer
 	

@@ -296,7 +296,12 @@ CLEANUP:
 	OPEN &ATC_Variables for OUTPUT AS #1 
 
     WRITE #1; &clipstring
-
+    WRITE #1; "&TOOL_OFFSET ="; 1
+	WRITE #1; "&ATC_SAFEY = &SAFETY"
+    WRITE #1; "&XX="; 1
+    WRITE #1; "&YY" ="; 1
+    WRITE #1; "&ZZ ="; 1
+    WRITE #1; "&XX2="; 1
     WRITE #1;"&CLIP1_X = ";&X01name
 	WRITE #1;"&CLIP1_Y = ";&Y01name
     WRITE #1;"&CLIP1_Z = ";&Z01name

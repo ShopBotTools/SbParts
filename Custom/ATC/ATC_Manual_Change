@@ -1,3 +1,40 @@
+'code for ATC file:
+droptoolManual:
+   &tx= &manualchgX - %(6) - %(61)
+   &ty= &manualchgY - %(7) - %(62)
+   &ATC_safeclear = (%(3) + (-1 *((%(3) + %(8))))) - &zBackoff
+   JZ,&ATC_safeclear
+   J2,&tx, &ty
+   If ATC=1 Then SO,3,1
+   MSGBOX(Remove tool number &ToolIN from the spindle and press OK  ,OKCancel,Change bit?)
+   if &msganswer = Cancel then ENDALL
+   Goto ZeroToolDrop
+ 
+loadtoolManual:
+   &tx= &manualchgX - %(6) - %(61)
+   &ty= &manualchgY - %(7) - %(62)
+   &ATC_safeclear = (%(3) + (-1 *((%(3) + %(8))))) - &zBackoff
+   JZ,&ATC_safeclear
+   J2,&tx, &ty
+   If ATC=1 Then SO,3,1
+   MSGBOX(Insert &ToolName tool number &tool into spindle and press OK  ,OKCancel,Change bit?)
+   if &msganswer = Cancel then ENDALL
+
+   FP,&ATC_Manual_Change
+
+   GOTO Finish_ToolChange
+
+
+
+
+'================================================
+
+
+
+
+
+
+
 SO,1,0        'Make sure spindle is not running
 &th = 0
 &temp_tool = 0

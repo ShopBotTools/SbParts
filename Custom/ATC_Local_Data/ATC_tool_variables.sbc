@@ -10,8 +10,8 @@
 &FixtureOffset = 0
 &MaterialOffset = 0
 &Tool0_Z = -5.000
-&Tool1_Z = -44.393
-&Tool2_Z = -39.414
+&Tool1_Z = -5.000
+&Tool2_Z = -5.000
 &Tool3_Z = -5.000
 &Tool4_Z = -5.000
 &Tool5_Z = -5.000
@@ -34,3 +34,13 @@
 &Tool22_Z = -5.000
 &Tool23_Z = -5.000
 &Tool24_Z = -5.000
+&Tool25_Z = -5.000
+&Tool26_Z = -5.000
+&Tool27_Z = -5.000
+&Tool28_Z = -5.000
+&Tool29_Z = -5.000
+&Tool30_Z = -5.000
+&Tool31_Z = -5.000
+&Tool32_Z = -5.000
+&Tool33_Z = -5.000
+&Tool34_Z = -5.000

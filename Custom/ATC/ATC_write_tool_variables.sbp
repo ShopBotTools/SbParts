@@ -38,5 +38,15 @@ WRITE #1; "&Tool21_Z = "; &Tool21_Z
 WRITE #1; "&Tool22_Z = "; &Tool22_Z
 WRITE #1; "&Tool23_Z = "; &Tool23_Z
 WRITE #1; "&Tool24_Z = "; &Tool24_Z
+WRITE #1; "&Tool25_Z = "; &Tool25_Z
+WRITE #1; "&Tool26_Z = "; &Tool26_Z
+WRITE #1; "&Tool27_Z = "; &Tool27_Z
+WRITE #1; "&Tool28_Z = "; &Tool28_Z
+WRITE #1; "&Tool29_Z = "; &Tool29_Z
+WRITE #1; "&Tool30_Z = "; &Tool30_Z
+WRITE #1; "&Tool31_Z = "; &Tool31_Z
+WRITE #1; "&Tool32_Z = "; &Tool32_Z
+WRITE #1; "&Tool33_Z = "; &Tool33_Z
+WRITE #1; "&Tool34_Z = "; &Tool34_Z
 
 CLOSE #1

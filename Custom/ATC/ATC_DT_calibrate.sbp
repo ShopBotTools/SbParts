@@ -43,6 +43,7 @@ OPEN &ATC_variables FOR OUTPUT AS #1
 
 WRITE #1; "&NUMCLIPS = 6"
 WRITE #1; "&TOOL_OFFSET ="; &TOOL_OFFSET
+WRITE #1; "&ATC_SAFEY = &SAFETY"
 WRITE #1; "&XX="; &XX1
 WRITE #1; "&YY" =";  &YY1
 WRITE #1; "&ZZ ="; &ZZ1
@@ -68,7 +69,7 @@ WRITE #1; "&CLIP6_Z =&ZZ"
 WRITE #1; "&CLIP7_X =&XX + (&XX2-&XX)/5 * 5"
 WRITE #1; "&CLIP7_Y =&YY +(&TOOL_OFFSET * 6)"
 WRITE #1; "&CLIP7_Z =&ZZ"
-WRITE #1; "&ATC_SAFEY = &SAFETY"
+
 
 CLOSE #1
 
