@@ -11,9 +11,12 @@
   Cont_change:
   INPUT "Tool Number to change to ? (Or, Cancel to Quit) " &tool
   VD,                                             'Clears display   
-  
   If &tool > 34 THEN GOTO Leave
   If &tool > 24 THEN GOTO Tool_Num_OK
+  If &tool < 0 THEN GOTO Leave
+  If &tool > &NUMCLIPS THEN GOTO Leave
+  If &tool <= &NUMCLIPS THEN GOTO Tool_Num_OK
+
   &count = 0                                 'Compare to each possible integer for full test of tool number
   Check_Tool_Num:
      If &tool = &count THEN GOTO Tool_Num_OK
@@ -23,13 +26,13 @@
   GOTO Check_Tool_Num
 
  Tool_Num_OK:
-   FP, &ATC_Restore_Settings
+   SF,1
    FP, &ATC_Run_ATC
    END
 
 
 Leave:
-   FP, &ATC_Restore_Settings
+   SF,1
    'Tool number not found; exiting. 
    PAUSE
 END

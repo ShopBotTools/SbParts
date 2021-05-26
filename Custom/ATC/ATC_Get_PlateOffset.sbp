@@ -11,7 +11,7 @@ SK
 Pause
 C2
 &PlateOffset = -1 * (&HOME_TH - %(8))
-FP,C:\SbParts\Custom\ATC\ATC_write_tool_variables
+FP,&ATC_Writer
 Print &PlateOffset
 'The tool will now confirm the plate offset by homeing on all axes (C3 routine).
 Pause

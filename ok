@@ -1,0 +1,1153 @@
+[1mdiff --git a/Custom/ATC/ATC.sbp b/Custom/ATC/ATC.sbp[m
+[1mindex 03ef578..ab9e9fc 100644[m
+[1m--- a/Custom/ATC/ATC.sbp[m
+[1m+++ b/Custom/ATC/ATC.sbp[m
+[36m@@ -29,11 +29,8 @@[m
+ '3/16/21 SBO - Updates and cleanup for metric users[m
+ ''Need to do[m
+ ''Allow for proportion in file[m
+[31m-[m
+[31m-[m
+ '- Setup for rotary change[m
+ '- Reconfigured Zero offsets(Zero any axis with Z# command)[m
+[31m-[m
+ '-----------------------------------------------------------------------------------------------------------------[m
+ '                                         for ATC inp 6 = Status of spindle turning [0=TURNING; 1=OFF][m
+ '                                         for ATC inp 7 = Status of ToolHolder in spindle [0=ABSENT; 1=PRESENT][m
+[36m@@ -53,30 +50,24 @@[m
+ 	&modenow = %(22)[m
+ 	If &modenow = 1 Then GoTo PreViewMode[m
+ [m
+[31m-    &oldtool=0[m
+[31m-    &newtool=-1[m
+[32m+[m[32m    &oldtool = 0[m
+[32m+[m[32m    &newtool = -1[m
+[32m+[m	[32m&clipOrientation = -1[m
+[32m+[m[32m    IF &ATC = 2 THEN &clipOrientation = 1[m
+ 	&exitX = 0[m
+ 	&exitY = 0[m
+ 	&exitZ = 0[m
+ [m
+[31m-[m
+[31m-    FP, c:\SbParts\Custom\ATC\ATC_Load_All_Values.sbp[m
+[31m-    SF,0 '###?? How to handle limit checking if already off by user choice??[m
+[32m+[m[32m    SF,0[m
+ [m
+ '------------------------------------------------------------------------------[m
+ [m
+[31m-UNITSDONE:[m
+ 	&oldtool = &ToolIN[m
+     &prox_statUS = %(53)[m
+[31m-	If &ATC = 3 Then Goto Continue[m
+[31m-    If &ATC = 4 Then Goto Continue[m
+ 	If &prox_statUS = &Prox_State Then GoSub Getoffprox[m
+[31m-    [m
+[31m-Continue: [m
+     VN,0[m
+     PAUSE .2[m
+[31m-	&ATC_safeclear = (%(3) + (-1 *((%(3) + %(8)))))- &zBackoff[m
+[31m-    &ATC_safeclear = &ATC_safeclear - %(63)[m
+[32m+[m	[32m&ATC_safeclear =  -1 * ( %(8) + %(63) + &zBackoff )[m
+ 	JZ,&ATC_safeclear[m
+ [m
+ '----Preliminary Checks---------------------------------------------------------[m
+[36m@@ -87,14 +78,12 @@[m [mContinue:[m
+ [m
+     Next_Check01:          [m
+     If %(101) = 1 Then GoTo spindlestopeRR  'EXIT IF WE COULDN'T STOP![m
+[31m-    FP, c:\SbParts\Custom\ATC\ATC_check_statUS.sbp[m
+[32m+[m[32m    FP, &ATC_Check_Status[m
+     PAUSE .5                                'Allow reading status check[m
+     VD,                                     'Remove status check because it won't stay current (could display at end)[m
+     If &ATC_statUS = OK Then GoTo OK_SWAP_TOOLS[m
+     If &ATC_statUS = EMPTY Then GoTo settool0[m
+     PRINT, "ATC_Status is " & &ATC_statUS[m
+[31m-    ''### may need a better error handler here if we drop through[m
+[31m-    'Confused ATC Situation[m
+     'Error setting up for tool change. ATC(58)[m
+     PAUSE [m
+  [m
+[36m@@ -145,55 +134,45 @@[m [mPosition_Z:[m
+ 	If &ToolIN=34 Then GoTo settool34[m
+ [m
+ Droptool:[m
+[31m-	If &ATC = 3 Then goto DTATC1[m
+[31m-	If &ATC = 4 Then goto DTATC1[m
+[31m-	&enterX = &tx - &ATC_clipClearX[m
+[31m-	&enterY = &ty  - &ATC_clipClearY[m
+[31m-	GoSub PlanEnter[m
+[31m-	DTATC1:[m
+[32m+[m
+     If &Tool = &ToolIN Then GoTo Finish_ToolChange 'NO NEED TO DO TOOL CHANGE[m
+[31m-    If &ATC = 2 Then GoTo 3PRS4     [m
+[31m-	J2, &sx, &ty 'Jog to X zero and Y midpoint between tool holders[m
+[31m-    If &ATC = 1 Then GoTo 3PRS3[m
+[31m-    If &ATC = 3 Then gosub Extendbar [m
+[31m-	If &ATC = 4 Then gosub Extendbar [m
+[31m-    Goto Clip [m
+[31m-	[m
+[31m-3PRS3:[m
+[31m-	'PRS-PRS3 ATCs[m
+[31m-	SO,3,1 'Open Dust skirt[m
+[31m-	GoTo Clip[m
+[31m-[m
+[31m-3PRS4:    [m
+[31m-    'PRS4 ATCs[m
+[31m-    J2, &enterX , &enterY  'Move inbetween clips[m
+[31m-    JX, &sx[m
+[31m-    JY, &ty          'Jog to X zero and Y midpoint between tool holders[m
+[31m-	Goto Clip[m
+[32m+[m[41m    [m
+[32m+[m	[32mGoSub PlanEnter[m
+[32m+[m	[32mJ2, &enterX , &enterY[m[41m   [m
+[32m+[m	[32mIf &ATC = 3 Then gosub Extendbar[m[41m [m
+[32m+[m	[32mIf &ATC = 4 Then gosub Extendbar[m[41m  [m
+[32m+[m	[32mJX, &sx[m
+[32m+[m	[32mJY, &ty[m
+[32m+[m[32m    If &ATC = 1 Then SO,3,1[m
+[32m+[m
+ Clip:[m
+     &clipHeight = &tz - %(8)[m
+     JZ, &clipHeight       'Jog to Z height of toolholder clip[m
+[31m-    C#,88                 'Save current speeds and set to ATC speeds[m
+     MX, &tx               'Move into clip[m
+     SO, 8,1               'Open toolholder chuck[m
+[31m-    PAUSE 0.1[m
+[31m-	'If &ATC = 3 Then pause 1 [m
+[31m-	'If &ATC = 4 Then pause 1[m
+[32m+[m[32m    PAUSE 0.2[m
+ 	If %(58) = 0 Then GoTo bartoperror[m
+     MZ, %(3)+ &thClearance           'Move up to clear toolholder[m
+     PAUSE 0.2    [m
+[31m-	'If &ATC = 3 Then SO,7,0 [m
+[31m-	'If &ATC = 4 Then SO,7,0[m
+     SO, 8,0               'Close toolholder chuck[m
+     PAUSE 0.2[m
+     If %(58) = 1 Then GoTo barboterror[m
+[31m-	Goto ZeroToolDrop[m
+[31m-[m
+[31m-      [m
+[32m+[m	[32m&new_curZ = %(3) - (&th + &zOffset - %(8)) 'update to current Z[m
+[32m+[m[32m    VA,,,&new_curZ,,,,,&th + &zOffset[m
+[32m+[m[32m    &clipHeight = &tz - %(8)[m
+[32m+[m[32m    &ATC_safeclear = -1 * ( %(8) + %(63) + &zBackoff )[m
+[32m+[m[32m    JZ,&ATC_safeclear[m
+[32m+[m	[32mIf &ATC = 3 Then gosub Retractbar[m[41m [m
+[32m+[m	[32mIf &ATC = 4 Then gosub Retractbar[m[41m [m
+[32m+[m	[32mIf &ATC = 1 Then SO,3,0[m
+[32m+[m	[32m&ToolIN = 0[m
+[32m+[m[32m    FP, &ATC_Write_Current_Status[m
+[32m+[m[32m    'Skip pick up if zero tool number and leave spindle empty[m
+[32m+[m[32m    If &newtool = 0 Then GoTo Finish_ToolChange[m
+[32m+[m[41m    [m
+ ZeroToolDrop:    [m
+     &newtool = &tool      'Set new tool number[m
+     &Dropped = 1[m
+[31m-    &ToolIN = &newTool[m
+ [m
+     If &newtool=0 Then GoTo settool0[m
+     If &newtool=1 Then GoTo settool1[m
+[36m@@ -238,84 +217,47 @@[m [mEnd                       'Exit if invalid tool number[m
+ [m
+ Changetool:[m
+     'Setup new Z height of bit relative to table surface from Table Base Coordinates[m
+[31m-	If &ATC = 3 Then goto DTATC2[m
+[31m-	If &ATC = 4 Then goto DTATC2[m
+[31m-	&exitX = &tx - &ATC_clipClearX[m
+[32m+[m	[32m&exitX = &tx - &ATC_clipClearX * &clipOrientation[m
+ 	&exitY = &ty  - &ATC_clipClearY[m
+ 	If &EXITPLANNING < 0 THEN GoSub PlanExit[m
+[31m-	If &EXITPLANNING > 0 THEN GoSub ExitLeft[m
+[31m-	DTATC2:[m
+[31m-    &new_curZ = %(3) - ((&th + &zOffset) - %(8)) 'update to current Z[m
+[31m-    VA,,,&new_curZ,,,,,&th + &zOffset[m
+[31m-    'Write all updated variables before starting next move[m
+[31m-    FP, &ATC_Writer[m
+[31m-    &clipHeight = &tz - %(8)[m
+[31m-    PAUSE 0.2[m
+[31m-    &ATC_safeclear = (%(3) + (-1 *((%(3) + %(8))))) - &zBackoff[m
+[31m-    &ATC_safeclear = &ATC_safeclear - %(63)[m
+[31m-    JZ,&ATC_safeclear[m
+[31m-	If &ATC = 3 Then gosub Retractbar [m
+[31m-	If &ATC = 4 Then gosub Retractbar [m
+[31m-[m
+[31m-    'Skip pick up if zero tool number and leave spindle empty[m
+[31m-    If &newtool = 0 Then GoTo Finish_ToolChange[m
+[31m-    [m
+[31m-    'JX, &tx + &ATC_clipSafe  'Jog X to toolholder X THESE 3 LINES HAVE BEEN BROKEN OUT - DP[m
+[31m-    If &ATC = 2 Then GoTo 4PRS4     [m
+[31m-    'PRS-PRS3[m
+[31m-    J2, &tx, &ty[m
+[31m-    SO,3,1  [m
+[32m+[m	[32mJ2, &tx, &ty[m
+[32m+[m	[32mIf &ATC = 1 Then SO,3,1[m[41m  [m
+ 	If &ATC = 3 Then gosub Extendbar [m
+ 	If &ATC = 4 Then gosub Extendbar[m
+[31m-    GoTo CT1[m
+[31m-[m
+[31m-4PRS4:    'PRS4 ATCs[m
+[31m-    J2, &tx, &ty[m
+ [m
+ CT1:   [m
+ 	JZ, &clipHeight + &thClearance     'Jog Z to 1 inch over toolholder height[m
+     SO, 8,1                  'Open toolholder chuck[m
+     PAUSE 0.2[m
+[31m-[m
+     If %(58) = 0 Then GoTo bartoperror[m
+     MZ, &clipHeight          'Move to toolholder height  [m
+     SO, 8,0                  'Close toolholder chuck [m
+[31m-    PAUSE 0.2   [m
+[32m+[m[32m    PAUSE 0.2[m
+ 	If %(58) = 1 Then GoTo barboterror[m
+     MX, &sx[m
+[31m-[m
+[31m-    PAUSE .2[m
+[31m-[m
+[31m-   	&ATC_safeclear = (%(3) + (-1 *((%(3) + %(8))))) - &zBackoff[m
+[32m+[m[41m   [m	[32m&ATC_safeclear = -1 * ( %(8) + %(63) + &zBackoff )[m
+ 	JZ,&ATC_safeclear[m
+[31m-	If %(57) = 0 Then GoTo toolerror[m
+[31m-    [m
+[31m-    If &ATC = 2 Then GoTo 5PRS4 'PRS-PRS3[m
+[31m-      SO,3,0           'Close Dust skirt    [m
+[31m-      &Dropped = 0  [m
+[31m-      GoTo Finish_ToolChange[m
+[31m-    5PRS4:    'PRS4 ATCs[m
+[31m-	  J2, &sx, &ty[m
+[31m-	  JY, &exitY[m
+[31m-	  JX, &exitX [m
+[31m-      &Dropped = 0[m
+[32m+[m	[32mIf %(57) = 0 Then GoTo toolerror[m[41m        [m
+[32m+[m[32m    IF &ATC = 1 THEN SO,3,0           'Close Dust skirt[m[41m    [m
+[32m+[m[32m    &Dropped = 0[m[41m  [m
+[32m+[m	[32mJY, &exitY[m
+[32m+[m	[32mJX, &exitX[m[41m [m
+[32m+[m[32m    &Dropped = 0[m
+ [m
+ Finish_ToolChange:[m
+[32m+[m	[32m&ToolIN = &newTool[m
+     If &newtool = 0 Then J2, &tx, &ty[m
+[31m-    &ATC_safeclear = (%(3) + (-1 *((%(3) + %(8))))) - &zBackoff[m
+[31m-	  &ATC_safeclear = &ATC_safeclear - %(63)[m
+[31m-[m
+[32m+[m[32m    &ATC_safeclear =  -1 * ( %(8) + %(63) + &zBackoff )[m
+     If &ToolIN = 0 Then JZ,&ATC_safeclear[m
+[31m-  'Write all updated variables[m
+[31m-    FP, &ATC_Writer[m
+[31m-    FP, c:\SbParts\Custom\ATC\ATC_check_statUS.sbp[m
+[31m-    'VD,[m
+[31m-    GoSub Exit_Resets[m
+[31m-[m
+[31m-	  &TL = &th + &PlateOffset + &MaxDepth[m
+[31m-	  VL,,,,,&TL[m
+[32m+[m[32m    'Write all updated variables[m
+[32m+[m[32m    FP, &ATC_Write_Current_Status[m
+[32m+[m[32m    FP, &ATC_Check_Status[m
+[32m+[m	[32m&TL = &th + &PlateOffset + &MaxDepth[m
+[32m+[m	[32mVL,,,,,&TL[m
+ 	If &ATC = 3 Then gosub Retractbar [m
+ 	If &ATC = 4 Then gosub Retractbar [m
+[32m+[m	[32mIf &ATC = 1 Then SO,3,0[m
+[32m+[m	[32mSF,1[m
+ End[m
+ 'END of ATC Main Routine =================================================================================================[m
+ [m
+[36m@@ -326,8 +268,7 @@[m [msettool0:[m
+   &th= &Tool0_Z                    'Height of bit off table relative to top Prox[m
+   &sy= 0                           'Safe Y position for tool change[m
+   &sx = 3[m
+[31m-  'pause[m
+[31m-  If &newtool = 0 Then GoTo Changetool [m
+[32m+[m[32m  If &newtool = 0 Then GoTo Finish_ToolChange[m
+ GoTo ZeroToolDrop[m
+   [m
+ settool1:[m
+[36m@@ -730,13 +671,6 @@[m [mGetoffprox:[m
+     SK    [m
+  Return[m
+ [m
+[31m-Exit_Resets:[m
+[31m-    'Reset speeds and other stuff[m
+[31m-	 if &ATC = 3 then GoSub RetractBar[m
+[31m-	 if &ATC = 4 then GoSub RetractBar[m
+[31m-     FP, C:\SBPARTS\custom\ATC\ATC_restore_settings.sbp[m
+[31m-Return[m
+[31m-[m
+ ExtendBar:[m
+ 	SO,7,1[m
+ 	pause 1.5[m
+[36m@@ -754,20 +688,16 @@[m [mIf %(107) = 1 then goto RetractBar[m
+ Return[m
+ [m
+ PlanExit:[m
+[31m-'Plan Exit[m
+[31m-PAUSE[m
+ &clipX = &tx + &xOffset + %(6) + %(61)[m
+ IF &NEXTX >= &clipX THEN goto ExitRight[m
+ IF &NEXTX < &clipX THEN goto ExitLeft[m
+ ExitRight:[m
+[31m-'Going Right[m
+[31m-PAUSE[m
+[31m-&exitX = &tx + &ATC_clipSafe[m
+[31m-&exitY = &ty[m
+[32m+[m[32m&exitX = &tx + &ATC_clipSafe * &clipOrientation[m
+[32m+[m[32m&exitY = &ty - &ATC_clipClearY[m
+ goto FinishExitPlan[m
+ ExitLeft:[m
+[31m-&exitX = &tx - &ATC_clipClearX[m
+[31m-&exitY = &ty  - &ATC_clipClearY[m
+[32m+[m[32m&exitX = &tx - &ATC_clipClearX * &clipOrientation[m
+[32m+[m[32m&exitY = &ty - &ATC_clipClearY[m
+ FinishExitPlan:[m
+ return[m
+ [m
+[36m@@ -775,12 +705,11 @@[m [mPlanEnter:[m
+ IF %(1) >= &tx THEN goto EnterRight[m
+ IF %(1) < &tx THEN goto EnterLeft[m
+ EnterRight:[m
+[31m-&enterX = &tx + &ATC_clipSafe[m
+[31m-&enterY = &ty[m
+[32m+[m[32m&enterX = &tx + &ATC_clipSafe * &clipOrientation[m
+[32m+[m[32m&enterY = &ty - &ATC_clipClearY[m
+ goto FinishEnterPlan[m
+ EnterLeft:[m
+[31m-&enterX = &tx - &ATC_clipClearX[m
+[31m-&enterY = &ty  - &ATC_clipClearY[m
+[32m+[m[32m&enterX = &tx - &ATC_clipClearX * &clipOrientation[m
+[32m+[m[32m&enterY = &ty - &ATC_clipClearY[m
+ FinishEnterPlan:[m
+[31m-return[m
+[31m-[m
+[32m+[m[32mreturn[m
+\ No newline at end of file[m
+[1mdiff --git a/Custom/ATC/ATC_Get_PlateOffset.sbp b/Custom/ATC/ATC_Get_PlateOffset.sbp[m
+[1mindex 5792475..465466f 100644[m
+[1m--- a/Custom/ATC/ATC_Get_PlateOffset.sbp[m
+[1m+++ b/Custom/ATC/ATC_Get_PlateOffset.sbp[m
+[36m@@ -11,7 +11,7 @@[m [mSK[m
+ Pause[m
+ C2[m
+ &PlateOffset = -1 * (&HOME_TH - %(8))[m
+[31m-FP,C:\SbParts\Custom\ATC\ATC_write_tool_variables[m
+[32m+[m[32mFP,&ATC_Writer[m
+ Print &PlateOffset[m
+ 'The tool will now confirm the plate offset by homeing on all axes (C3 routine).[m
+ Pause[m
+[1mdiff --git a/Custom/ATC/ATC_XYZ_Home.sbp b/Custom/ATC/ATC_XYZ_Home.sbp[m
+[1mindex e084df3..0ce7e9a 100644[m
+[1m--- a/Custom/ATC/ATC_XYZ_Home.sbp[m
+[1m+++ b/Custom/ATC/ATC_XYZ_Home.sbp[m
+[36m@@ -11,14 +11,12 @@[m
+ '[m
+ 'Set up Switch Numbers[m
+ [m
+[31m-FP, c:\SbParts\Custom\ATC\ATC_Load_All_Values.sbp 'Read ATC_Variables, ATC_Tool_Variables and ATC_Settings and custom variables file from Custom Cut 90[m
+[31m-[m
+ 'Determine whether we are in Preview mode or Move/Cut mode[m
+     &modenow = %(22)[m
+     If &modenow = 1 Then GoSub Changemode[m
+[31m-	[m
+ 	If &ToolIN = 0 Then Goto ZeroToolIN [m
+ 'Check to make sure there is a tool holder properly inserted into spindle[m
+[32m+[m
+     If %(57) = 0 Then GoTo ToolNotIN[m
+     If &dropped = 1 Then &dropped = 0 [m
+ [m
+[36m@@ -123,7 +121,8 @@[m [mFP, c:\SbParts\Custom\ATC\ATC_Load_All_Values.sbp 'Read ATC_Variables, ATC_Tool_[m
+             [m
+ [m
+ 'Write all updated variables.[m
+[31m-   FP, &ATC_Writer[m
+[32m+[m[32m   FP, &ATC_Write_Current_Status[m
+[32m+[m[32m   FP, &ATC_Check_Status[m
+ [m
+ 'Tool is now Zeroed in X and Y Axis.[m
+    PAUSE 2[m
+[36m@@ -233,4 +232,10 @@[m [mZeroToolIn:[m
+     INPUT "Enter the number of the tool in the spindle" &ToolIN[m
+   'Make sure dropped is set to 0 now that it is confirmed that a tool holder is in place     [m
+     If &dropped = 1 Then &dropped = 0 [m
+[31m- GoTo ZeroTool[m
+[32m+[m	[32mIF &ToolIN =  Then GoTo unknownTool[m
+[32m+[m[32mGoTo ZeroTool[m
+[32m+[m
+[32m+[m[32munknownTool:[m
+[32m+[m[32m'Unknown Tool in Spindle. Remove tool and run homing routine again.[m[41m [m
+[32m+[m[32mPAUSE[m
+[32m+[m[32m&ToolIN = 0[m
+\ No newline at end of file[m
+[1mdiff --git a/Custom/ATC/ATC_change.sbp b/Custom/ATC/ATC_change.sbp[m
+[1mindex d5d58b4..a9fdf3d 100644[m
+[1m--- a/Custom/ATC/ATC_change.sbp[m
+[1m+++ b/Custom/ATC/ATC_change.sbp[m
+[36m@@ -11,9 +11,12 @@[m
+   Cont_change:[m
+   INPUT "Tool Number to change to ? (Or, Cancel to Quit) " &tool[m
+   VD,                                             'Clears display   [m
+[31m-  [m
+   If &tool > 34 THEN GOTO Leave[m
+   If &tool > 24 THEN GOTO Tool_Num_OK[m
+[32m+[m[32m  If &tool < 0 THEN GOTO Leave[m
+[32m+[m[32m  If &tool > &NUMCLIPS THEN GOTO Leave[m
+[32m+[m[32m  If &tool <= &NUMCLIPS THEN GOTO Tool_Num_OK[m
+[32m+[m
+   &count = 0                                 'Compare to each possible integer for full test of tool number[m
+   Check_Tool_Num:[m
+      If &tool = &count THEN GOTO Tool_Num_OK[m
+[36m@@ -23,13 +26,13 @@[m
+   GOTO Check_Tool_Num[m
+ [m
+  Tool_Num_OK:[m
+[31m-   FP, &ATC_Restore_Settings[m
+[32m+[m[32m   SF,1[m
+    FP, &ATC_Run_ATC[m
+    END[m
+ [m
+ [m
+ Leave:[m
+[31m-   FP, &ATC_Restore_Settings[m
+[32m+[m[32m   SF,1[m
+    'Tool number not found; exiting. [m
+    PAUSE[m
+ END[m
+[1mdiff --git a/Custom/ATC/ATC_check_status.sbp b/Custom/ATC/ATC_check_status.sbp[m
+[1mindex 1a12c4f..10e813f 100644[m
+[1m--- a/Custom/ATC/ATC_check_status.sbp[m
+[1m+++ b/Custom/ATC/ATC_check_status.sbp[m
+[36m@@ -40,7 +40,7 @@[m [mLeave_on_problem:[m
+   ''###?? Could more specifically report the nature of failure, or help user fix ??[m
+ [m
+    &ATC_status = PROBLEM[m
+[31m-   FP, C:\SBPARTS\custom\ATC\ATC_restore_settings.sbp[m
+[32m+[m[32m   SF,1[m
+ END[m
+ [m
+ 'Subroutines ==================================================================================================================[m
+[36m@@ -54,34 +54,43 @@[m [mEval_Offset:[m
+ 	[m
+     [m
+     ToolNum_OK:[m
+[31m-    IF &ToolIN=0 THEN GOSUB ck_tool0[m
+[31m-    IF &ToolIN=1 THEN GOSUB ck_tool1[m
+[31m-    IF &ToolIN=2 THEN GOSUB ck_tool2[m
+[31m-    IF &ToolIN=3 THEN GOSUB ck_tool3[m
+[31m-    IF &ToolIN=4 THEN GOSUB ck_tool4[m
+[31m-    IF &ToolIN=5 THEN GOSUB ck_tool5[m
+[31m-    IF &ToolIN=6 THEN GOSUB ck_tool6[m
+[31m-    IF &ToolIN=7 THEN GOSUB ck_tool7[m
+[31m-    IF &ToolIN=8 THEN GOSUB ck_tool8[m
+[31m-    IF &ToolIN=9 THEN GOSUB ck_tool9[m
+[31m-    IF &ToolIN=10 THEN GOSUB ck_tool10[m
+[31m-    IF &ToolIN=11 THEN GOSUB ck_tool11[m
+[31m-    IF &ToolIN=12 THEN GOSUB ck_tool12[m
+[31m-    IF &ToolIN=13 THEN GOSUB ck_tool13[m
+[31m-    IF &ToolIN=14 THEN GOSUB ck_tool14[m
+[31m-	IF &ToolIN=15 THEN GOSUB ck_tool15[m
+[31m-	IF &ToolIN=16 THEN GOSUB ck_tool16[m
+[31m-	IF &ToolIN=17 THEN GOSUB ck_tool17[m
+[31m-	IF &ToolIN=18 THEN GOSUB ck_tool18[m
+[31m-	IF &ToolIN=19 THEN GOSUB ck_tool19[m
+[31m-	IF &ToolIN=20 THEN GOSUB ck_tool20[m
+[31m-	IF &ToolIN=21 THEN GOSUB ck_tool21[m
+[31m-	IF &ToolIN=22 THEN GOSUB ck_tool22[m
+[31m-	IF &ToolIN=23 THEN GOSUB ck_tool23[m
+[31m-	IF &ToolIN=24 THEN GOSUB ck_tool24[m
+[31m-[m
+[31m-[m
+[32m+[m[32m    IF &ToolIN=0 THEN GOTO ck_tool0[m
+[32m+[m[32m    IF &ToolIN=1 THEN GOTO ck_tool1[m
+[32m+[m[32m    IF &ToolIN=2 THEN GOTO ck_tool2[m
+[32m+[m[32m    IF &ToolIN=3 THEN GOTO ck_tool3[m
+[32m+[m[32m    IF &ToolIN=4 THEN GOTO ck_tool4[m
+[32m+[m[32m    IF &ToolIN=5 THEN GOTO ck_tool5[m
+[32m+[m[32m    IF &ToolIN=6 THEN GOTO ck_tool6[m
+[32m+[m[32m    IF &ToolIN=7 THEN GOTO ck_tool7[m
+[32m+[m[32m    IF &ToolIN=8 THEN GOTO ck_tool8[m
+[32m+[m[32m    IF &ToolIN=9 THEN GOTO ck_tool9[m
+[32m+[m[32m    IF &ToolIN=10 THEN GOTO ck_tool10[m
+[32m+[m[32m    IF &ToolIN=11 THEN GOTO ck_tool11[m
+[32m+[m[32m    IF &ToolIN=12 THEN GOTO ck_tool12[m
+[32m+[m[32m    IF &ToolIN=13 THEN GOTO ck_tool13[m
+[32m+[m[32m    IF &ToolIN=14 THEN GOTO ck_tool14[m
+[32m+[m	[32mIF &ToolIN=15 THEN GOTO ck_tool15[m
+[32m+[m	[32mIF &ToolIN=16 THEN GOTO ck_tool16[m
+[32m+[m	[32mIF &ToolIN=17 THEN GOTO ck_tool17[m
+[32m+[m	[32mIF &ToolIN=18 THEN GOTO ck_tool18[m
+[32m+[m	[32mIF &ToolIN=19 THEN GOTO ck_tool19[m
+[32m+[m	[32mIF &ToolIN=20 THEN GOTO ck_tool20[m
+[32m+[m	[32mIF &ToolIN=21 THEN GOTO ck_tool21[m
+[32m+[m	[32mIF &ToolIN=22 THEN GOTO ck_tool22[m
+[32m+[m	[32mIF &ToolIN=23 THEN GOTO ck_tool23[m
+[32m+[m	[32mIF &ToolIN=24 THEN GOTO ck_tool24[m
+[32m+[m	[32mIF &ToolIN=25 THEN GOTO ck_tool25[m
+[32m+[m	[32mIF &ToolIN=26 THEN GOTO ck_tool26[m
+[32m+[m	[32mIF &ToolIN=27 THEN GOTO ck_tool27[m
+[32m+[m	[32mIF &ToolIN=28 THEN GOTO ck_tool28[m
+[32m+[m	[32mIF &ToolIN=29 THEN GOTO ck_tool29[m
+[32m+[m	[32mIF &ToolIN=30 THEN GOTO ck_tool30[m
+[32m+[m	[32mIF &ToolIN=31 THEN GOTO ck_tool31[m
+[32m+[m	[32mIF &ToolIN=32 THEN GOTO ck_tool32[m
+[32m+[m	[32mIF &ToolIN=33 THEN GOTO ck_tool33[m
+[32m+[m	[32mIF &ToolIN=34 THEN GOTO ck_tool34[m
+ [m
+[32m+[m[32mfinishStatus:[m
+     &test_val = (ABS(%(8) - &test_th))[m
+     IF &test_val > .002 THEN GOTO Leave_on_problem    'Compare to current offset (w/slight tolerance for rounding)[m
+ RETURN[m
+[36m@@ -89,100 +98,140 @@[m [mRETURN[m
+ ck_tool0:[m
+   &zOffset = %(8) - &Tool0_Z        'Ryan added this[m
+   &test_th = &Tool0_Z + &zOffset                                 'Expected TBC Offset for Z[m
+[31m-RETURN[m
+[32m+[m[32mGOTO finishStatus[m
+ ck_tool1:[m
+   &zOffset = %(8) - &Tool1_Z        'Ryan added this[m
+   &test_th= &Tool1_Z + &zOffset                                 'Expected TBC Offset for Z[m
+[31m-RETURN[m
+[32m+[m[32mGOTO finishStatus[m
+ ck_tool2:[m
+   &zOffset = %(8) - &Tool2_Z        'Ryan added this[m
+   &test_th= &Tool2_Z + &zOffset                                 'Expected TBC Offset for Z[m
+[31m-RETURN[m
+[32m+[m[32mGOTO finishStatus[m
+ ck_tool3:[m
+   &zOffset = %(8) - &Tool3_Z        'Ryan added this[m
+   &test_th= &Tool3_Z + &zOffset                                 'Expected TBC Offset for Z[m
+[31m-RETURN[m
+[32m+[m[32mGOTO finishStatus[m
+ ck_tool4:[m
+   &zOffset = %(8) - &Tool4_Z        'Ryan added this[m
+   &test_th= &Tool4_Z + &zOffset                                 'Expected TBC Offset for Z[m
+[31m-RETURN[m
+[32m+[m[32mGOTO finishStatus[m
+ ck_tool5:[m
+   &zOffset = %(8) - &Tool5_Z        'Ryan added this[m
+   &test_th= &Tool5_Z + &zOffset                                 'Expected TBC Offset for Z[m
+[31m-RETURN[m
+[32m+[m[32mGOTO finishStatus[m
+ ck_tool6:[m
+   &zOffset = %(8) - &Tool6_Z        'Ryan added this[m
+   &test_th= &Tool6_Z + &zOffset                                 'Expected TBC Offset for Z[m
+[31m-RETURN[m
+[32m+[m[32mGOTO finishStatus[m
+ ck_tool7:[m
+   &zOffset = %(8) - &Tool7_Z        'Ryan added this[m
+   &test_th= &Tool7_Z + &zOffset                                 'Expected TBC Offset for Z[m
+[31m-RETURN[m
+[32m+[m[32mGOTO finishStatus[m
+ ck_tool8:[m
+   &zOffset = %(8) - &Tool8_Z        'Ryan added this[m
+   &test_th= &Tool8_Z + &zOffset                                 'Expected TBC Offset for Z[m
+[31m-RETURN[m
+[32m+[m[32mGOTO finishStatus[m
+ ck_tool9:[m
+   &zOffset = %(8) - &Tool9_Z        'Ryan added this[m
+   &test_th= &Tool9_Z + &zOffset                                 'Expected TBC Offset for Z[m
+[31m-RETURN[m
+[32m+[m[32mGOTO finishStatus[m
+ ck_tool10:[m
+   &zOffset = %(8) - &Tool10_Z        'Ryan added this[m
+   &test_th= &Tool10_Z + &zOffset                                 'Expected TBC Offset for Z[m
+[31m-RETURN[m
+[32m+[m[32mGOTO finishStatus[m
+ ck_tool11:[m
+   &zOffset = %(8) - &Tool11_Z        'Ryan added this[m
+   &test_th= &Tool11_Z + &zOffset                                 'Expected TBC Offset for Z[m
+[31m-RETURN[m
+[32m+[m[32mGOTO finishStatus[m
+ ck_tool12:[m
+   &zOffset = %(8) - &Tool12_Z        'Ryan added this[m
+   &test_th= &Tool12_Z + &zOffset                                 'Expected TBC Offset for Z[m
+[31m-RETURN[m
+[32m+[m[32mGOTO finishStatus[m
+ ck_tool13:[m
+   &zOffset = %(8) - &Tool13_Z        'Ryan added this[m
+   &test_th= &Tool13_Z + &zOffset                                 'Expected TBC Offset for Z[m
+[31m-RETURN[m
+[32m+[m[32mGOTO finishStatus[m
+ ck_tool14:[m
+   &zOffset = %(8) - &Tool14_Z        'Ryan added this[m
+   &test_th= &Tool14_Z + &zOffset                                 'Expected TBC Offset for Z[m
+[31m-RETURN[m
+[32m+[m[32mGOTO finishStatus[m
+ ck_tool15:[m
+   &zOffset = %(8) - &Tool15_Z        'Ryan added this[m
+   &test_th= &Tool15_Z + &zOffset                                 'Expected TBC Offset for Z[m
+[31m-RETURN[m
+[32m+[m[32mGOTO finishStatus[m
+ ck_tool16:[m
+   &zOffset = %(8) - &Tool16_Z        'Ryan added this[m
+   &test_th= &Tool16_Z + &zOffset                                 'Expected TBC Offset for Z[m
+[31m-RETURN[m
+[32m+[m[32mGOTO finishStatus[m
+ ck_tool17:[m
+   &zOffset = %(8) - &Tool17_Z        'Ryan added this[m
+   &test_th= &Tool17_Z + &zOffset                                 'Expected TBC Offset for Z[m
+[31m-RETURN[m
+[32m+[m[32mGOTO finishStatus[m
+ ck_tool18:[m
+   &zOffset = %(8) - &Tool18_Z        'Ryan added this[m
+   &test_th= &Tool18_Z + &zOffset                                 'Expected TBC Offset for Z[m
+[31m-RETURN[m
+[32m+[m[32mGOTO finishStatus[m
+ ck_tool19:[m
+   &zOffset = %(8) - &Tool19_Z        'Ryan added this[m
+   &test_th= &Tool19_Z + &zOffset                                 'Expected TBC Offset for Z[m
+[31m-RETURN[m
+[32m+[m[32mGOTO finishStatus[m
+ ck_tool20:[m
+   &zOffset = %(8) - &Tool20_Z        'Ryan added this[m
+   &test_th= &Tool20_Z + &zOffset                                 'Expected TBC Offset for Z[m
+[31m-RETURN[m
+[32m+[m[32mGOTO finishStatus[m
+ ck_tool21:[m
+   &zOffset = %(8) - &Tool21_Z        'Ryan added this[m
+   &test_th= &Tool21_Z + &zOffset                                 'Expected TBC Offset for Z[m
+[31m-RETURN[m
+[32m+[m[32mGOTO finishStatus[m
+ ck_tool22:[m
+   &zOffset = %(8) - &Tool22_Z        'Ryan added this[m
+   &test_th= &Tool22_Z + &zOffset                                 'Expected TBC Offset for Z[m
+[31m-RETURN[m
+[32m+[m[32mGOTO finishStatus[m
+ ck_tool23:[m
+   &zOffset = %(8) - &Tool23_Z        'Ryan added this[m
+   &test_th= &Tool23_Z + &zOffset                                 'Expected TBC Offset for Z[m
+[31m-RETURN[m
+[32m+[m[32mGOTO finishStatus[m
+ ck_tool24:[m
+   &zOffset = %(8) - &Tool24_Z        'Ryan added this[m
+   &test_th= &Tool24_Z + &zOffset                                 'Expected TBC Offset for Z[m
+[31m-RETURN[m
+\ No newline at end of file[m
+[32m+[m[32mGOTO finishStatus[m
+[32m+[m[32mck_tool25:[m
+[32m+[m[32m  &zOffset = %(8) - &Tool25_Z        'Ryan added this[m
+[32m+[m[32m  &test_th= &Tool25_Z + &zOffset                                 'Expected TBC Offset for Z[m
+[32m+[m[32mGOTO finishStatus[m
+[32m+[m[32mck_tool26:[m
+[32m+[m[32m  &zOffset = %(8) - &Tool26_Z        'Ryan added this[m
+[32m+[m[32m  &test_th= &Tool26_Z + &zOffset                                 'Expected TBC Offset for Z[m
+[32m+[m[32mGOTO finishStatus[m
+[32m+[m[32mck_tool27:[m
+[32m+[m[32m  &zOffset = %(8) - &Tool27_Z        'Ryan added this[m
+[32m+[m[32m  &test_th= &Tool27_Z + &zOffset                                 'Expected TBC Offset for Z[m
+[32m+[m[32mGOTO finishStatus[m
+[32m+[m[32mck_tool28:[m
+[32m+[m[32m  &zOffset = %(8) - &Tool28_Z        'Ryan added this[m
+[32m+[m[32m  &test_th= &Tool28_Z + &zOffset                                 'Expected TBC Offset for Z[m
+[32m+[m[32mGOTO finishStatus[m
+[32m+[m[32mck_tool29:[m
+[32m+[m[32m  &zOffset = %(8) - &Tool29_Z        'Ryan added this[m
+[32m+[m[32m  &test_th= &Tool29_Z + &zOffset                                 'Expected TBC Offset for Z[m
+[32m+[m[32mGOTO finishStatus[m
+[32m+[m[32mck_tool30:[m
+[32m+[m[32m  &zOffset = %(8) - &Tool30_Z        'Ryan added this[m
+[32m+[m[32m  &test_th= &Tool30_Z + &zOffset                                 'Expected TBC Offset for Z[m
+[32m+[m[32mGOTO finishStatus[m
+[32m+[m[32mck_tool31:[m
+[32m+[m[32m  &zOffset = %(8) - &Tool31_Z        'Ryan added this[m
+[32m+[m[32m  &test_th= &Tool31_Z + &zOffset                                 'Expected TBC Offset for Z[m
+[32m+[m[32mGOTO finishStatus[m
+[32m+[m[32mck_tool32:[m
+[32m+[m[32m  &zOffset = %(8) - &Tool32_Z        'Ryan added this[m
+[32m+[m[32m  &test_th= &Tool32_Z + &zOffset                                 'Expected TBC Offset for Z[m
+[32m+[m[32mGOTO finishStatus[m
+[32m+[m[32mck_tool33:[m
+[32m+[m[32m  &zOffset = %(8) - &Tool33_Z        'Ryan added this[m
+[32m+[m[32m  &test_th= &Tool33_Z + &zOffset                                 'Expected TBC Offset for Z[m
+[32m+[m[32mGOTO finishStatus[m
+[32m+[m[32mck_tool34:[m
+[32m+[m[32m  &zOffset = %(8) - &Tool34_Z        'Ryan added this[m
+[32m+[m[32m  &test_th= &Tool34_Z + &zOffset                                 'Expected TBC Offset for Z[m
+[32m+[m[32mGOTO finishStatus[m
+\ No newline at end of file[m
+[1mdiff --git a/Custom/ATC/ATC_write_tool_variables.sbp b/Custom/ATC/ATC_write_tool_variables.sbp[m
+[1mindex 9005604..400bedb 100644[m
+[1m--- a/Custom/ATC/ATC_write_tool_variables.sbp[m
+[1m+++ b/Custom/ATC/ATC_write_tool_variables.sbp[m
+[36m@@ -4,9 +4,7 @@[m
+ OPEN &ATC_Toolvar_outname FOR OUTPUT AS #1[m
+ WRITE #1; "&ATC_zZeroX="; &ATC_zZeroX[m
+ WRITE #1; "&ATC_zZeroY= "; &ATC_zZeroY[m
+[31m-WRITE #1; "&ToolIN = "; &ToolIN[m
+ WRITE #1; "&UseAux = "; &UseAux[m
+[31m-WRITE #1; "&Dropped ="; &Dropped[m
+ WRITE #1; "&zOffset = "; &zOffset[m
+ WRITE #1; "&xOffset = "; &xOffset[m
+ WRITE #1; "&YOffset = "; &yOffset[m
+[36m@@ -49,4 +47,4 @@[m [mWRITE #1; "&Tool32_Z = "; &Tool32_Z[m
+ WRITE #1; "&Tool33_Z = "; &Tool33_Z[m
+ WRITE #1; "&Tool34_Z = "; &Tool34_Z[m
+ [m
+[31m-CLOSE #1[m
+[32m+[m[32mCLOSE #1[m
+\ No newline at end of file[m
+[1mdiff --git a/Custom/ATC_Local_Data/ATC_Extra_Tools.sbc b/Custom/ATC_Local_Data/ATC_Extra_Tools.sbc[m
+[1mdeleted file mode 100644[m
+[1mindex 701fa10..0000000[m
+[1m--- a/Custom/ATC_Local_Data/ATC_Extra_Tools.sbc[m
+[1m+++ /dev/null[m
+[36m@@ -1,101 +0,0 @@[m
+[31m-1,0[m
+[31m-2,0[m
+[31m-3,0[m
+[31m-4,0[m
+[31m-5,0[m
+[31m-6,0[m
+[31m-7,0[m
+[31m-8,0[m
+[31m-9,0[m
+[31m-10,0[m
+[31m-11,0[m
+[31m-12,0[m
+[31m-13,0[m
+[31m-14,0[m
+[31m-15,0[m
+[31m-16,0[m
+[31m-17,0[m
+[31m-18,0[m
+[31m-19,0[m
+[31m-20,0[m
+[31m-21,0[m
+[31m-22,0[m
+[31m-23,0[m
+[31m-24,0[m
+[31m-25,0[m
+[31m-26,0[m
+[31m-27,0[m
+[31m-28,0[m
+[31m-29,0[m
+[31m-30,0[m
+[31m-31,0[m
+[31m-32,0[m
+[31m-33,0[m
+[31m-34,0[m
+[31m-35,0[m
+[31m-36,0[m
+[31m-37,0[m
+[31m-38,0[m
+[31m-39,0[m
+[31m-40,0[m
+[31m-41,0[m
+[31m-42,0[m
+[31m-43,0[m
+[31m-44,0[m
+[31m-45,-7.195[m
+[31m-46,0[m
+[31m-47,0[m
+[31m-48,0[m
+[31m-49,0[m
+[31m-50,0[m
+[31m-51,0[m
+[31m-52,0[m
+[31m-53,0[m
+[31m-54,0[m
+[31m-55,0[m
+[31m-56,0[m
+[31m-57,0[m
+[31m-58,0[m
+[31m-59,0[m
+[31m-60,0[m
+[31m-61,0[m
+[31m-62,0[m
+[31m-63,0[m
+[31m-64,0[m
+[31m-65,0[m
+[31m-66,0[m
+[31m-67,0[m
+[31m-68,0[m
+[31m-69,0[m
+[31m-70,0[m
+[31m-71,0[m
+[31m-72,0[m
+[31m-73,0[m
+[31m-74,0[m
+[31m-75,0[m
+[31m-76,0[m
+[31m-77,0[m
+[31m-78,0[m
+[31m-79,0[m
+[31m-80,0[m
+[31m-81,0[m
+[31m-82,0[m
+[31m-83,0[m
+[31m-84,0[m
+[31m-85,0[m
+[31m-86,0[m
+[31m-87,0[m
+[31m-88,0[m
+[31m-89,0[m
+[31m-90,0[m
+[31m-91,0[m
+[31m-92,0[m
+[31m-93,0[m
+[31m-94,0[m
+[31m-95,0[m
+[31m-96,0[m
+[31m-97,0[m
+[31m-98,0[m
+[31m-99,0[m
+[31m-100,0[m
+[31m-9999,0[m
+[1mdiff --git a/Custom/ATC_Local_Data/ATC_Extra_Tools_WRITER.sbc b/Custom/ATC_Local_Data/ATC_Extra_Tools_WRITER.sbc[m
+[1mdeleted file mode 100644[m
+[1mindex 701fa10..0000000[m
+[1m--- a/Custom/ATC_Local_Data/ATC_Extra_Tools_WRITER.sbc[m
+[1m+++ /dev/null[m
+[36m@@ -1,101 +0,0 @@[m
+[31m-1,0[m
+[31m-2,0[m
+[31m-3,0[m
+[31m-4,0[m
+[31m-5,0[m
+[31m-6,0[m
+[31m-7,0[m
+[31m-8,0[m
+[31m-9,0[m
+[31m-10,0[m
+[31m-11,0[m
+[31m-12,0[m
+[31m-13,0[m
+[31m-14,0[m
+[31m-15,0[m
+[31m-16,0[m
+[31m-17,0[m
+[31m-18,0[m
+[31m-19,0[m
+[31m-20,0[m
+[31m-21,0[m
+[31m-22,0[m
+[31m-23,0[m
+[31m-24,0[m
+[31m-25,0[m
+[31m-26,0[m
+[31m-27,0[m
+[31m-28,0[m
+[31m-29,0[m
+[31m-30,0[m
+[31m-31,0[m
+[31m-32,0[m
+[31m-33,0[m
+[31m-34,0[m
+[31m-35,0[m
+[31m-36,0[m
+[31m-37,0[m
+[31m-38,0[m
+[31m-39,0[m
+[31m-40,0[m
+[31m-41,0[m
+[31m-42,0[m
+[31m-43,0[m
+[31m-44,0[m
+[31m-45,-7.195[m
+[31m-46,0[m
+[31m-47,0[m
+[31m-48,0[m
+[31m-49,0[m
+[31m-50,0[m
+[31m-51,0[m
+[31m-52,0[m
+[31m-53,0[m
+[31m-54,0[m
+[31m-55,0[m
+[31m-56,0[m
+[31m-57,0[m
+[31m-58,0[m
+[31m-59,0[m
+[31m-60,0[m
+[31m-61,0[m
+[31m-62,0[m
+[31m-63,0[m
+[31m-64,0[m
+[31m-65,0[m
+[31m-66,0[m
+[31m-67,0[m
+[31m-68,0[m
+[31m-69,0[m
+[31m-70,0[m
+[31m-71,0[m
+[31m-72,0[m
+[31m-73,0[m
+[31m-74,0[m
+[31m-75,0[m
+[31m-76,0[m
+[31m-77,0[m
+[31m-78,0[m
+[31m-79,0[m
+[31m-80,0[m
+[31m-81,0[m
+[31m-82,0[m
+[31m-83,0[m
+[31m-84,0[m
+[31m-85,0[m
+[31m-86,0[m
+[31m-87,0[m
+[31m-88,0[m
+[31m-89,0[m
+[31m-90,0[m
+[31m-91,0[m
+[31m-92,0[m
+[31m-93,0[m
+[31m-94,0[m
+[31m-95,0[m
+[31m-96,0[m
+[31m-97,0[m
+[31m-98,0[m
+[31m-99,0[m
+[31m-100,0[m
+[31m-9999,0[m
+[1mdiff --git a/Custom/ATC_Local_Data/ATC_Settings.sbc b/Custom/ATC_Local_Data/ATC_Settings.sbc[m
+[1mindex 6045e4f..6e061f3 100644[m
+[1m--- a/Custom/ATC_Local_Data/ATC_Settings.sbc[m
+[1m+++ b/Custom/ATC_Local_Data/ATC_Settings.sbc[m
+[36m@@ -62,7 +62,8 @@[m [mPRS3ATC:[m
+ 	&ZUP = .5 * &unitMultiplier 'Pull up from pressure plate during bit measurement[m
+ 	&ZforVA = -0.5 'pull away from z prox during bit measurement[m
+ 	&ATC_clipSafe = -3 * &unitMultiplier 'Change + to - if tool clips are on left side[m
+[31m-	[m
+[32m+[m	[32m&ATC_clipClearX = -3 * &unitMultiplier[m
+[32m+[m[32m    &ATC_clipClearY = 0 * &unitMultiplier[m
+ 	'Prox switch setup values[m
+     &X_Prox = 2[m
+ 	&Y_Prox = 3[m
+[36m@@ -108,7 +109,9 @@[m [mDTMATC:[m
+ 	&bigZclear = 8 * &unitMultiplier[m
+ 	&bigZplunge = -6 * &unitMultiplier[m
+ 	&ZUP = 2.5 * &unitMultiplier[m
+[31m-	&ATC_clipSafe = 0 * &unitMultiplier [m
+[32m+[m	[32m&ATC_clipSafe = 0 * &unitMultiplier[m
+[32m+[m	[32m&ATC_clipClearX = -3 * &unitMultiplier[m
+[32m+[m[32m    &ATC_clipClearY = 0 * &unitMultiplier[m[41m [m
+     &Prox_State = 1[m
+ 	&TOOLBAR_LENGTH = 15 * &unitMultiplier [m
+ 	&TOOL_OFFSET = 3 * &unitMultiplier [m
+[1mdiff --git a/Custom/ATC_Local_Data/ATC_tool_variables.sbc b/Custom/ATC_Local_Data/ATC_tool_variables.sbc[m
+[1mindex c45734b..2b501d2 100644[m
+[1m--- a/Custom/ATC_Local_Data/ATC_tool_variables.sbc[m
+[1m+++ b/Custom/ATC_Local_Data/ATC_tool_variables.sbc[m
+[36m@@ -1,12 +1,10 @@[m
+[31m-&ATC_zZeroX=915.162[m
+[31m-&ATC_zZeroY= -34.690[m
+[31m-&ToolIN = 45[m
+[32m+[m[32m&ATC_zZeroX=0[m
+[32m+[m[32m&ATC_zZeroY= 0[m
+ &UseAux = 0[m
+[31m-&Dropped =1[m
+[31m-&zOffset = 5.222895313917661[m
+[32m+[m[32m&zOffset = 1.20179493000001705E-6[m
+ &xOffset = 0[m
+ &YOffset = 0[m
+[31m-&PlateOffset = 5.2228959599924[m
+[32m+[m[32m&PlateOffset = 0[m
+ &FixtureOffset = 0[m
+ &MaterialOffset = 0[m
+ &Tool0_Z = -5.000[m
+[1mdiff --git a/Custom/ATC_Local_Data/ATC_variables.sbc b/Custom/ATC_Local_Data/ATC_variables.sbc[m
+[1mindex 9212acc..a01db9d 100644[m
+[1m--- a/Custom/ATC_Local_Data/ATC_variables.sbc[m
+[1m+++ b/Custom/ATC_Local_Data/ATC_variables.sbc[m
+[36m@@ -1,112 +1,34 @@[m
+[31m-&NUMCLIPS = 0[m
+[31m-&TOOL_OFFSET = 1[m
+[32m+[m[32m&NUMCLIPS = 9[m
+[32m+[m[32m&TOOL_OFFSET =1[m
+ &ATC_SAFEY = &SAFETY[m
+[31m-&XX= 1[m
+[31m-&YY = 1[m
+[31m-&ZZ = 1[m
+[31m-&XX2= 1[m
+[31m-&CLIP1_X = &manualchgX[m
+[31m-&CLIP1_Y = &manualchgY[m
+[31m-&CLIP1_Z = 1[m
+[31m-&CLIP2_X = &manualchgX[m
+[31m-&CLIP2_Y = &manualchgY[m
+[31m-&CLIP2_Z = 1[m
+[31m-&CLIP3_X = &manualchgX[m
+[31m-&CLIP3_Y = &manualchgY[m
+[31m-&CLIP3_Z = 1[m
+[31m-&CLIP4_X = &manualchgX[m
+[31m-&CLIP4_Y = &manualchgY[m
+[31m-&CLIP4_Z = 1[m
+[31m-&CLIP5_X = &manualchgX[m
+[31m-&CLIP5_Y = &manualchgY[m
+[31m-&CLIP5_Z = 1[m
+[31m-&CLIP6_X = &manualchgX[m
+[31m-&CLIP6_Y = &manualchgY[m
+[31m-&CLIP6_Z = 1[m
+[31m-&CLIP7_X = &manualchgX[m
+[31m-&CLIP7_Y = &manualchgY[m
+[31m-&CLIP7_Z = 1[m
+[31m-&CLIP8_X = &manualchgX[m
+[31m-&CLIP8_Y = &manualchgY[m
+[31m-&CLIP8_Z = 1[m
+[31m-&CLIP9_X = &manualchgX[m
+[31m-&CLIP9_Y = &manualchgY[m
+[31m-&CLIP9_Z = 1[m
+[31m-&CLIP10_X = &manualchgX[m
+[31m-&CLIP10_Y = &manualchgY[m
+[31m-&CLIP10_Z = 1[m
+[31m-&CLIP11_X = &manualchgX[m
+[31m-&CLIP11_Y = &manualchgY[m
+[31m-&CLIP11_Z = 1[m
+[31m-&CLIP12_X = &manualchgX[m
+[31m-&CLIP12_Y = &manualchgY[m
+[31m-&CLIP12_Z = 1[m
+[31m-&CLIP13_X = &manualchgX[m
+[31m-&CLIP13_Y = &manualchgY[m
+[31m-&CLIP13_Z = 1[m
+[31m-&CLIP14_X = &manualchgX[m
+[31m-&CLIP14_Y = &manualchgY[m
+[31m-&CLIP14_Z = 1[m
+[31m-&CLIP15_X = &manualchgX[m
+[31m-&CLIP15_Y = &manualchgY[m
+[31m-&CLIP15_Z = 1[m
+[31m-&CLIP16_X = &manualchgX[m
+[31m-&CLIP16_Y = &manualchgY[m
+[31m-&CLIP16_Z = 1[m
+[31m-&CLIP17_X = &manualchgX[m
+[31m-&CLIP17_Y = &manualchgY[m
+[31m-&CLIP17_Z = 1[m
+[31m-&CLIP18_X = &manualchgX[m
+[31m-&CLIP18_Y = &manualchgY[m
+[31m-&CLIP18_Z = 1[m
+[31m-&CLIP19_X = &manualchgX[m
+[31m-&CLIP19_Y = &manualchgY[m
+[31m-&CLIP19_Z = 1[m
+[31m-&CLIP20_X = &manualchgX[m
+[31m-&CLIP20_Y = &manualchgY[m
+[31m-&CLIP20_Z = 1[m
+[31m-&CLIP21_X = &manualchgX[m
+[31m-&CLIP21_Y = &manualchgY[m
+[31m-&CLIP21_Z = 1[m
+[31m-&CLIP22_X = &manualchgX[m
+[31m-&CLIP22_Y = &manualchgY[m
+[31m-&CLIP22_Z = 1[m
+[31m-&CLIP23_X = &manualchgX[m
+[31m-&CLIP23_Y = &manualchgY[m
+[31m-&CLIP23_Z = 1[m
+[31m-&CLIP24_X = &manualchgX[m
+[31m-&CLIP24_Y = &manualchgY[m
+[31m-&CLIP24_Z = 1[m
+[31m-&CLIP25_X = &manualchgX[m
+[31m-&CLIP25_Y = &manualchgY[m
+[31m-&CLIP25_Z = 1[m
+[31m-&CLIP26_X = &manualchgX[m
+[31m-&CLIP26_Y = &manualchgY[m
+[31m-&CLIP26_Z = 1[m
+[31m-&CLIP27_X = &manualchgX[m
+[31m-&CLIP27_Y = &manualchgY[m
+[31m-&CLIP27_Z = 1[m
+[31m-&CLIP28_X = &manualchgX[m
+[31m-&CLIP28_Y = &manualchgY[m
+[31m-&CLIP28_Z = 1[m
+[31m-&CLIP29_X = &manualchgX[m
+[31m-&CLIP29_Y = &manualchgY[m
+[31m-&CLIP29_Z = 1[m
+[31m-&CLIP30_X = &manualchgX[m
+[31m-&CLIP30_Y = &manualchgY[m
+[31m-&CLIP30_Z = 1[m
+[31m-&CLIP31_X = &manualchgX[m
+[31m-&CLIP31_Y = &manualchgY[m
+[31m-&CLIP31_Z = 1[m
+[31m-&CLIP32_X = &manualchgX[m
+[31m-&CLIP32_Y = &manualchgY[m
+[31m-&CLIP32_Z = 1[m
+[31m-&CLIP33_X = &manualchgX[m
+[31m-&CLIP33_Y = &manualchgY[m
+[31m-&CLIP33_Z = 1[m
+[31m-&CLIP34_X = &manualchgX[m
+[31m-&CLIP34_Y = &manualchgY[m
+[31m-&CLIP34_Z = 1[m
+[31m-[m
+[31m-[m
+[31m-[m
+[32m+[m[32m&XX=1[m
+[32m+[m[32m&YY =1[m
+[32m+[m[32m&ZZ =1[m
+[32m+[m[32m&XX2=1[m
+[32m+[m[32m&CLIP1_X = 104.1905[m
+[32m+[m[32m&CLIP1_Y = 8.4345[m
+[32m+[m[32m&CLIP1_Z = -5.025[m
+[32m+[m[32m&CLIP2_X = 104.18[m
+[32m+[m[32m&CLIP2_Y = 13.048[m
+[32m+[m[32m&CLIP2_Z = -4.992[m
+[32m+[m[32m&CLIP3_X = 104.2[m
+[32m+[m[32m&CLIP3_Y = 17.8095[m
+[32m+[m[32m&CLIP3_Z = -4.983[m
+[32m+[m[32m&CLIP4_X = 104.1795[m
+[32m+[m[32m&CLIP4_Y = 22.512[m
+[32m+[m[32m&CLIP4_Z = -4.986[m
+[32m+[m[32m&CLIP5_X = 104.199[m
+[32m+[m[32m&CLIP5_Y = 27.1455[m
+[32m+[m[32m&CLIP5_Z = -5.01[m
+[32m+[m[32m&CLIP6_X = 104.184[m
+[32m+[m[32m&CLIP6_Y = 31.867[m
+[32m+[m[32m&CLIP6_Z = -5.029[m
+[32m+[m[32m&CLIP7_X = 104.1855[m
+[32m+[m[32m&CLIP7_Y = 36.5475[m
+[32m+[m[32m&CLIP7_Z = -4.988[m
+[32m+[m[32m&CLIP8_X = 104.1965[m
+[32m+[m[32m&CLIP8_Y = 41.184[m
+[32m+[m[32m&CLIP8_Z = -5.042[m
+[32m+[m[32m&CLIP9_X = 104.1945[m
+[32m+[m[32m&CLIP9_Y = 45.8735[m
+[32m+[m[32m&CLIP9_Z = -5.025[m
+[1mdiff --git a/Custom/Custom1.sbc b/Custom/Custom1.sbc[m
+[1mindex 4103c4e..a8821f4 100644[m
+[1m--- a/Custom/Custom1.sbc[m
+[1m+++ b/Custom/Custom1.sbc[m
+[36m@@ -21,7 +21,7 @@[m [mIsMTC:[m
+ IsATC:[m
+     C#,90             'Load the my_variables file from with Custom Cut 90[m
+     C#,89             'Read variables from ATC_Variables and ATC_Tool_Variables[m
+[31m-    FP, &ATC_change[m
+[32m+[m[32m    FP, &ATC_Change[m
+ 	GoTo IsDone[m
+ [m
+ Is5AX:[m
+[1mdiff --git a/Custom/Custom3.sbc b/Custom/Custom3.sbc[m
+[1mindex e0fa09a..37f2619 100644[m
+[1m--- a/Custom/Custom3.sbc[m
+[1m+++ b/Custom/Custom3.sbc[m
+[36m@@ -16,6 +16,8 @@[m [mIsMTC:[m
+ [m
+ [m
+ IsATC:[m
+[32m+[m	[32mC#,89[m
+[32m+[m	[32mC#,90[m
+ 	FP,C:\SbParts\Custom\ATC\ATC_XYZ_Home.sbp[m
+ 	GoTo IsDone[m
+ IsDone:[m
+\ No newline at end of file[m
+[1mdiff --git a/Custom/Custom89.sbc b/Custom/Custom89.sbc[m
+[1mindex 7ede4c4..2113aa1 100644[m
+[1m--- a/Custom/Custom89.sbc[m
+[1m+++ b/Custom/Custom89.sbc[m
+[36m@@ -7,20 +7,24 @@[m
+ [m
+     &ATC_folder_path = C:\SbParts\Custom\ATC\[m
+     &ATC_local_data_path = C:\SbParts\Custom\ATC_Local_Data\[m
+[31m-[m
+[32m+[m[41m    [m
+[32m+[m	[32m&ATC_Current_Status = &ATC_local_data_path & "ATC_Current_Status.sbc"[m[41m [m
+     &ATC_Variables = &ATC_local_data_path & "ATC_Variables.sbc"[m
+     &ATC_Toolvar_outname = &ATC_local_data_path & "ATC_Tool_Variables.sbc"[m
+ 	&ATC_Settings = &ATC_local_data_path & "ATC_Settings.sbc"[m
+ 	&ATC_Extra_Tools = &ATC_local_data_path & "ATC_Extra_Tools.sbc"[m
+ 	&ATC_Extra_Tools_Writer = &ATC_local_data_path & "ATC_Extra_Tools_WRITER.sbc"[m
+     &ATC_Writer = &ATC_folder_path & "ATC_Write_Tool_Variables.sbp"[m
+[32m+[m	[32m&ATC_Write_Current_Status = &ATC_folder_path & "ATC_Write_Current_Status.sbp"[m
+     &ATC_Restore_Settings = &ATC_folder_path & "ATC_restore_settings.sbp"[m
+     &ATC_Check_Status = &ATC_folder_path & "ATC_check_status.sbp"[m
+     &ATC_Run_ATC = &ATC_folder_path & "ATC.sbp"[m
+ 	&ATC_Manual_Change = &ATC_folder_path & "ATC_Manual_Change.sbp"[m
+ 	&ATC_Zzero = &ATC_folder_path & "ATC_Zzero.sbp"[m
+[32m+[m	[32m&ATC_XYZ_Home = &ATC_folder_path & "ATC_XYZ_Home.sbp"[m
+ 	&ATC_Change = &ATC_folder_path & "ATC_change.sbp"[m
+ [m
+[32m+[m	[32mFP, &ATC_Settings[m
+[32m+[m	[32mFP, &ATC_Current_Status[m
+     FP, &ATC_Variables[m
+     FP, &ATC_Toolvar_outname[m
+[31m-	FP, &ATC_Settings[m

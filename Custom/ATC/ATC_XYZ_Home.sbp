@@ -11,14 +11,12 @@
 '
 'Set up Switch Numbers
 
-FP, c:\SbParts\Custom\ATC\ATC_Load_All_Values.sbp 'Read ATC_Variables, ATC_Tool_Variables and ATC_Settings and custom variables file from Custom Cut 90
-
 'Determine whether we are in Preview mode or Move/Cut mode
     &modenow = %(22)
     If &modenow = 1 Then GoSub Changemode
-	
 	If &ToolIN = 0 Then Goto ZeroToolIN 
 'Check to make sure there is a tool holder properly inserted into spindle
+
     If %(57) = 0 Then GoTo ToolNotIN
     If &dropped = 1 Then &dropped = 0 
 
@@ -123,7 +121,8 @@ FP, c:\SbParts\Custom\ATC\ATC_Load_All_Values.sbp 'Read ATC_Variables, ATC_Tool_
             
 
 'Write all updated variables.
-   FP, &ATC_Writer
+   FP, &ATC_Write_Current_Status
+   FP, &ATC_Check_Status
 
 'Tool is now Zeroed in X and Y Axis.
    PAUSE 2
@@ -233,4 +232,10 @@ ZeroToolIn:
     INPUT "Enter the number of the tool in the spindle" &ToolIN
   'Make sure dropped is set to 0 now that it is confirmed that a tool holder is in place     
     If &dropped = 1 Then &dropped = 0 
- GoTo ZeroTool
+	IF &ToolIN =  Then GoTo unknownTool
+GoTo ZeroTool
+
+unknownTool:
+'Unknown Tool in Spindle. Remove tool and run homing routine again. 
+PAUSE
+&ToolIN = 0

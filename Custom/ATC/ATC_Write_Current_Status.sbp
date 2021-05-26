@@ -1,0 +1,4 @@
+OPEN &ATC_Current_Status FOR OUTPUT AS #1
+WRITE #1; "&ToolIN = "; &ToolIN
+WRITE #1; "&Dropped ="; &Dropped
+CLOSE #1

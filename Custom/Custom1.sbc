@@ -21,7 +21,7 @@ IsMTC:
 IsATC:
     C#,90             'Load the my_variables file from with Custom Cut 90
     C#,89             'Read variables from ATC_Variables and ATC_Tool_Variables
-    FP, &ATC_change
+    FP, &ATC_Change
 	GoTo IsDone
 
 Is5AX:

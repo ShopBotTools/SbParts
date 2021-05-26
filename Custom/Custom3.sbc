@@ -16,6 +16,8 @@ IsMTC:
 
 
 IsATC:
+	C#,89
+	C#,90
 	FP,C:\SbParts\Custom\ATC\ATC_XYZ_Home.sbp
 	GoTo IsDone
 IsDone:

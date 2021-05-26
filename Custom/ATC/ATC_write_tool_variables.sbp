@@ -4,9 +4,7 @@
 OPEN &ATC_Toolvar_outname FOR OUTPUT AS #1
 WRITE #1; "&ATC_zZeroX="; &ATC_zZeroX
 WRITE #1; "&ATC_zZeroY= "; &ATC_zZeroY
-WRITE #1; "&ToolIN = "; &ToolIN
 WRITE #1; "&UseAux = "; &UseAux
-WRITE #1; "&Dropped ="; &Dropped
 WRITE #1; "&zOffset = "; &zOffset
 WRITE #1; "&xOffset = "; &xOffset
 WRITE #1; "&YOffset = "; &yOffset

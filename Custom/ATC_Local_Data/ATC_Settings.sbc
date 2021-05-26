@@ -62,7 +62,8 @@ PRS3ATC:
 	&ZUP = .5 * &unitMultiplier 'Pull up from pressure plate during bit measurement
 	&ZforVA = -0.5 'pull away from z prox during bit measurement
 	&ATC_clipSafe = -3 * &unitMultiplier 'Change + to - if tool clips are on left side
-	
+	&ATC_clipClearX = -3 * &unitMultiplier
+    &ATC_clipClearY = 0 * &unitMultiplier
 	'Prox switch setup values
     &X_Prox = 2
 	&Y_Prox = 3
@@ -108,7 +109,9 @@ DTMATC:
 	&bigZclear = 8 * &unitMultiplier
 	&bigZplunge = -6 * &unitMultiplier
 	&ZUP = 2.5 * &unitMultiplier
-	&ATC_clipSafe = 0 * &unitMultiplier 
+	&ATC_clipSafe = 0 * &unitMultiplier
+	&ATC_clipClearX = -3 * &unitMultiplier
+    &ATC_clipClearY = 0 * &unitMultiplier 
     &Prox_State = 1
 	&TOOLBAR_LENGTH = 15 * &unitMultiplier 
 	&TOOL_OFFSET = 3 * &unitMultiplier 

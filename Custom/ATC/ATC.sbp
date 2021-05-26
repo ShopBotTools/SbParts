@@ -29,11 +29,8 @@
 '3/16/21 SBO - Updates and cleanup for metric users
 ''Need to do
 ''Allow for proportion in file
-
-
 '- Setup for rotary change
 '- Reconfigured Zero offsets(Zero any axis with Z# command)
-
 '-----------------------------------------------------------------------------------------------------------------
 '                                         for ATC inp 6 = Status of spindle turning [0=TURNING; 1=OFF]
 '                                         for ATC inp 7 = Status of ToolHolder in spindle [0=ABSENT; 1=PRESENT]
@@ -53,30 +50,24 @@
 	&modenow = %(22)
 	If &modenow = 1 Then GoTo PreViewMode
 
-    &oldtool=0
-    &newtool=-1
+    &oldtool = 0
+    &newtool = -1
+	&clipOrientation = -1
+    IF &ATC = 2 THEN &clipOrientation = 1
 	&exitX = 0
 	&exitY = 0
 	&exitZ = 0
 
-
-    FP, c:\SbParts\Custom\ATC\ATC_Load_All_Values.sbp
-    SF,0 '###?? How to handle limit checking if already off by user choice??
+    SF,0
 
 '------------------------------------------------------------------------------
 
-UNITSDONE:
 	&oldtool = &ToolIN
     &prox_statUS = %(53)
-	If &ATC = 3 Then Goto Continue
-    If &ATC = 4 Then Goto Continue
 	If &prox_statUS = &Prox_State Then GoSub Getoffprox
-    
-Continue: 
     VN,0
     PAUSE .2
-	&ATC_safeclear = (%(3) + (-1 *((%(3) + %(8)))))- &zBackoff
-    &ATC_safeclear = &ATC_safeclear - %(63)
+	&ATC_safeclear =  -1 * ( %(8) + %(63) + &zBackoff )
 	JZ,&ATC_safeclear
 
 '----Preliminary Checks---------------------------------------------------------
@@ -87,14 +78,12 @@ Continue:
 
     Next_Check01:          
     If %(101) = 1 Then GoTo spindlestopeRR  'EXIT IF WE COULDN'T STOP!
-    FP, c:\SbParts\Custom\ATC\ATC_check_statUS.sbp
+    FP, &ATC_Check_Status
     PAUSE .5                                'Allow reading status check
     VD,                                     'Remove status check because it won't stay current (could display at end)
     If &ATC_statUS = OK Then GoTo OK_SWAP_TOOLS
     If &ATC_statUS = EMPTY Then GoTo settool0
     PRINT, "ATC_Status is " & &ATC_statUS
-    ''### may need a better error handler here if we drop through
-    'Confused ATC Situation
     'Error setting up for tool change. ATC(58)
     PAUSE 
  
@@ -145,55 +134,45 @@ Position_Z:
 	If &ToolIN=34 Then GoTo settool34
 
 Droptool:
-	If &ATC = 3 Then goto DTATC1
-	If &ATC = 4 Then goto DTATC1
-	&enterX = &tx - &ATC_clipClearX
-	&enterY = &ty  - &ATC_clipClearY
-	GoSub PlanEnter
-	DTATC1:
-    If &Tool = &ToolIN Then GoTo Finish_ToolChange 'NO NEED TO DO TOOL CHANGE
-    If &ATC = 2 Then GoTo 3PRS4     
-	J2, &sx, &ty 'Jog to X zero and Y midpoint between tool holders
-    If &ATC = 1 Then GoTo 3PRS3
-    If &ATC = 3 Then gosub Extendbar 
-	If &ATC = 4 Then gosub Extendbar 
-    Goto Clip 
-	
-3PRS3:
-	'PRS-PRS3 ATCs
-	SO,3,1 'Open Dust skirt
-	GoTo Clip
 
-3PRS4:    
-    'PRS4 ATCs
-    J2, &enterX , &enterY  'Move inbetween clips
-    JX, &sx
-    JY, &ty          'Jog to X zero and Y midpoint between tool holders
-	Goto Clip
+    If &Tool = &ToolIN Then GoTo Finish_ToolChange 'NO NEED TO DO TOOL CHANGE
+    
+	GoSub PlanEnter
+	J2, &enterX , &enterY   
+	If &ATC = 3 Then gosub Extendbar 
+	If &ATC = 4 Then gosub Extendbar  
+	JX, &sx
+	JY, &ty
+    If &ATC = 1 Then SO,3,1
+
 Clip:
     &clipHeight = &tz - %(8)
     JZ, &clipHeight       'Jog to Z height of toolholder clip
-    C#,88                 'Save current speeds and set to ATC speeds
     MX, &tx               'Move into clip
     SO, 8,1               'Open toolholder chuck
-    PAUSE 0.1
-	'If &ATC = 3 Then pause 1 
-	'If &ATC = 4 Then pause 1
+    PAUSE 0.2
 	If %(58) = 0 Then GoTo bartoperror
     MZ, %(3)+ &thClearance           'Move up to clear toolholder
     PAUSE 0.2    
-	'If &ATC = 3 Then SO,7,0 
-	'If &ATC = 4 Then SO,7,0
     SO, 8,0               'Close toolholder chuck
     PAUSE 0.2
     If %(58) = 1 Then GoTo barboterror
-	Goto ZeroToolDrop
-
-      
+	&new_curZ = %(3) - (&th + &zOffset - %(8)) 'update to current Z
+    VA,,,&new_curZ,,,,,&th + &zOffset
+    &clipHeight = &tz - %(8)
+    &ATC_safeclear = -1 * ( %(8) + %(63) + &zBackoff )
+    JZ,&ATC_safeclear
+	If &ATC = 3 Then gosub Retractbar 
+	If &ATC = 4 Then gosub Retractbar 
+	If &ATC = 1 Then SO,3,0
+	&ToolIN = 0
+    FP, &ATC_Write_Current_Status
+    'Skip pick up if zero tool number and leave spindle empty
+    If &newtool = 0 Then GoTo Finish_ToolChange
+    
 ZeroToolDrop:    
     &newtool = &tool      'Set new tool number
     &Dropped = 1
-    &ToolIN = &newTool
 
     If &newtool=0 Then GoTo settool0
     If &newtool=1 Then GoTo settool1
@@ -238,84 +217,47 @@ End                       'Exit if invalid tool number
 
 Changetool:
     'Setup new Z height of bit relative to table surface from Table Base Coordinates
-	If &ATC = 3 Then goto DTATC2
-	If &ATC = 4 Then goto DTATC2
-	&exitX = &tx - &ATC_clipClearX
+	&exitX = &tx - &ATC_clipClearX * &clipOrientation
 	&exitY = &ty  - &ATC_clipClearY
 	If &EXITPLANNING < 0 THEN GoSub PlanExit
-	If &EXITPLANNING > 0 THEN GoSub ExitLeft
-	DTATC2:
-    &new_curZ = %(3) - ((&th + &zOffset) - %(8)) 'update to current Z
-    VA,,,&new_curZ,,,,,&th + &zOffset
-    'Write all updated variables before starting next move
-    FP, &ATC_Writer
-    &clipHeight = &tz - %(8)
-    PAUSE 0.2
-    &ATC_safeclear = (%(3) + (-1 *((%(3) + %(8))))) - &zBackoff
-    &ATC_safeclear = &ATC_safeclear - %(63)
-    JZ,&ATC_safeclear
-	If &ATC = 3 Then gosub Retractbar 
-	If &ATC = 4 Then gosub Retractbar 
-
-    'Skip pick up if zero tool number and leave spindle empty
-    If &newtool = 0 Then GoTo Finish_ToolChange
-    
-    'JX, &tx + &ATC_clipSafe  'Jog X to toolholder X THESE 3 LINES HAVE BEEN BROKEN OUT - DP
-    If &ATC = 2 Then GoTo 4PRS4     
-    'PRS-PRS3
-    J2, &tx, &ty
-    SO,3,1  
+	J2, &tx, &ty
+	If &ATC = 1 Then SO,3,1  
 	If &ATC = 3 Then gosub Extendbar 
 	If &ATC = 4 Then gosub Extendbar
-    GoTo CT1
-
-4PRS4:    'PRS4 ATCs
-    J2, &tx, &ty
 
 CT1:   
 	JZ, &clipHeight + &thClearance     'Jog Z to 1 inch over toolholder height
     SO, 8,1                  'Open toolholder chuck
     PAUSE 0.2
-
     If %(58) = 0 Then GoTo bartoperror
     MZ, &clipHeight          'Move to toolholder height  
     SO, 8,0                  'Close toolholder chuck 
-    PAUSE 0.2   
+    PAUSE 0.2
 	If %(58) = 1 Then GoTo barboterror
     MX, &sx
-
-    PAUSE .2
-
-   	&ATC_safeclear = (%(3) + (-1 *((%(3) + %(8))))) - &zBackoff
+   	&ATC_safeclear = -1 * ( %(8) + %(63) + &zBackoff )
 	JZ,&ATC_safeclear
-	If %(57) = 0 Then GoTo toolerror
-    
-    If &ATC = 2 Then GoTo 5PRS4 'PRS-PRS3
-      SO,3,0           'Close Dust skirt    
-      &Dropped = 0  
-      GoTo Finish_ToolChange
-    5PRS4:    'PRS4 ATCs
-	  J2, &sx, &ty
-	  JY, &exitY
-	  JX, &exitX 
-      &Dropped = 0
+	If %(57) = 0 Then GoTo toolerror        
+    IF &ATC = 1 THEN SO,3,0           'Close Dust skirt    
+    &Dropped = 0  
+	JY, &exitY
+	JX, &exitX 
+    &Dropped = 0
 
 Finish_ToolChange:
+	&ToolIN = &newTool
     If &newtool = 0 Then J2, &tx, &ty
-    &ATC_safeclear = (%(3) + (-1 *((%(3) + %(8))))) - &zBackoff
-	  &ATC_safeclear = &ATC_safeclear - %(63)
-
+    &ATC_safeclear =  -1 * ( %(8) + %(63) + &zBackoff )
     If &ToolIN = 0 Then JZ,&ATC_safeclear
-  'Write all updated variables
-    FP, &ATC_Writer
-    FP, c:\SbParts\Custom\ATC\ATC_check_statUS.sbp
-    'VD,
-    GoSub Exit_Resets
-
-	  &TL = &th + &PlateOffset + &MaxDepth
-	  VL,,,,,&TL
+    'Write all updated variables
+    FP, &ATC_Write_Current_Status
+    FP, &ATC_Check_Status
+	&TL = &th + &PlateOffset + &MaxDepth
+	VL,,,,,&TL
 	If &ATC = 3 Then gosub Retractbar 
 	If &ATC = 4 Then gosub Retractbar 
+	If &ATC = 1 Then SO,3,0
+	SF,1
 End
 'END of ATC Main Routine =================================================================================================
 
@@ -326,8 +268,7 @@ settool0:
   &th= &Tool0_Z                    'Height of bit off table relative to top Prox
   &sy= 0                           'Safe Y position for tool change
   &sx = 3
-  'pause
-  If &newtool = 0 Then GoTo Changetool 
+  If &newtool = 0 Then GoTo Finish_ToolChange
 GoTo ZeroToolDrop
   
 settool1:
@@ -730,13 +671,6 @@ Getoffprox:
     SK    
  Return
 
-Exit_Resets:
-    'Reset speeds and other stuff
-	 if &ATC = 3 then GoSub RetractBar
-	 if &ATC = 4 then GoSub RetractBar
-     FP, C:\SBPARTS\custom\ATC\ATC_restore_settings.sbp
-Return
-
 ExtendBar:
 	SO,7,1
 	pause 1.5
@@ -754,20 +688,16 @@ If %(107) = 1 then goto RetractBar
 Return
 
 PlanExit:
-'Plan Exit
-PAUSE
 &clipX = &tx + &xOffset + %(6) + %(61)
 IF &NEXTX >= &clipX THEN goto ExitRight
 IF &NEXTX < &clipX THEN goto ExitLeft
 ExitRight:
-'Going Right
-PAUSE
-&exitX = &tx + &ATC_clipSafe
-&exitY = &ty
+&exitX = &tx + &ATC_clipSafe * &clipOrientation
+&exitY = &ty - &ATC_clipClearY
 goto FinishExitPlan
 ExitLeft:
-&exitX = &tx - &ATC_clipClearX
-&exitY = &ty  - &ATC_clipClearY
+&exitX = &tx - &ATC_clipClearX * &clipOrientation
+&exitY = &ty - &ATC_clipClearY
 FinishExitPlan:
 return
 
@@ -775,12 +705,11 @@ PlanEnter:
 IF %(1) >= &tx THEN goto EnterRight
 IF %(1) < &tx THEN goto EnterLeft
 EnterRight:
-&enterX = &tx + &ATC_clipSafe
-&enterY = &ty
+&enterX = &tx + &ATC_clipSafe * &clipOrientation
+&enterY = &ty - &ATC_clipClearY
 goto FinishEnterPlan
 EnterLeft:
-&enterX = &tx - &ATC_clipClearX
-&enterY = &ty  - &ATC_clipClearY
+&enterX = &tx - &ATC_clipClearX * &clipOrientation
+&enterY = &ty - &ATC_clipClearY
 FinishEnterPlan:
 return
-

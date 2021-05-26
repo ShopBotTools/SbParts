@@ -40,7 +40,7 @@ Leave_on_problem:
   ''###?? Could more specifically report the nature of failure, or help user fix ??
 
    &ATC_status = PROBLEM
-   FP, C:\SBPARTS\custom\ATC\ATC_restore_settings.sbp
+   SF,1
 END
 
 'Subroutines ==================================================================================================================
@@ -54,34 +54,43 @@ Eval_Offset:
 	
     
     ToolNum_OK:
-    IF &ToolIN=0 THEN GOSUB ck_tool0
-    IF &ToolIN=1 THEN GOSUB ck_tool1
-    IF &ToolIN=2 THEN GOSUB ck_tool2
-    IF &ToolIN=3 THEN GOSUB ck_tool3
-    IF &ToolIN=4 THEN GOSUB ck_tool4
-    IF &ToolIN=5 THEN GOSUB ck_tool5
-    IF &ToolIN=6 THEN GOSUB ck_tool6
-    IF &ToolIN=7 THEN GOSUB ck_tool7
-    IF &ToolIN=8 THEN GOSUB ck_tool8
-    IF &ToolIN=9 THEN GOSUB ck_tool9
-    IF &ToolIN=10 THEN GOSUB ck_tool10
-    IF &ToolIN=11 THEN GOSUB ck_tool11
-    IF &ToolIN=12 THEN GOSUB ck_tool12
-    IF &ToolIN=13 THEN GOSUB ck_tool13
-    IF &ToolIN=14 THEN GOSUB ck_tool14
-	IF &ToolIN=15 THEN GOSUB ck_tool15
-	IF &ToolIN=16 THEN GOSUB ck_tool16
-	IF &ToolIN=17 THEN GOSUB ck_tool17
-	IF &ToolIN=18 THEN GOSUB ck_tool18
-	IF &ToolIN=19 THEN GOSUB ck_tool19
-	IF &ToolIN=20 THEN GOSUB ck_tool20
-	IF &ToolIN=21 THEN GOSUB ck_tool21
-	IF &ToolIN=22 THEN GOSUB ck_tool22
-	IF &ToolIN=23 THEN GOSUB ck_tool23
-	IF &ToolIN=24 THEN GOSUB ck_tool24
+    IF &ToolIN=0 THEN GOTO ck_tool0
+    IF &ToolIN=1 THEN GOTO ck_tool1
+    IF &ToolIN=2 THEN GOTO ck_tool2
+    IF &ToolIN=3 THEN GOTO ck_tool3
+    IF &ToolIN=4 THEN GOTO ck_tool4
+    IF &ToolIN=5 THEN GOTO ck_tool5
+    IF &ToolIN=6 THEN GOTO ck_tool6
+    IF &ToolIN=7 THEN GOTO ck_tool7
+    IF &ToolIN=8 THEN GOTO ck_tool8
+    IF &ToolIN=9 THEN GOTO ck_tool9
+    IF &ToolIN=10 THEN GOTO ck_tool10
+    IF &ToolIN=11 THEN GOTO ck_tool11
+    IF &ToolIN=12 THEN GOTO ck_tool12
+    IF &ToolIN=13 THEN GOTO ck_tool13
+    IF &ToolIN=14 THEN GOTO ck_tool14
+	IF &ToolIN=15 THEN GOTO ck_tool15
+	IF &ToolIN=16 THEN GOTO ck_tool16
+	IF &ToolIN=17 THEN GOTO ck_tool17
+	IF &ToolIN=18 THEN GOTO ck_tool18
+	IF &ToolIN=19 THEN GOTO ck_tool19
+	IF &ToolIN=20 THEN GOTO ck_tool20
+	IF &ToolIN=21 THEN GOTO ck_tool21
+	IF &ToolIN=22 THEN GOTO ck_tool22
+	IF &ToolIN=23 THEN GOTO ck_tool23
+	IF &ToolIN=24 THEN GOTO ck_tool24
+	IF &ToolIN=25 THEN GOTO ck_tool25
+	IF &ToolIN=26 THEN GOTO ck_tool26
+	IF &ToolIN=27 THEN GOTO ck_tool27
+	IF &ToolIN=28 THEN GOTO ck_tool28
+	IF &ToolIN=29 THEN GOTO ck_tool29
+	IF &ToolIN=30 THEN GOTO ck_tool30
+	IF &ToolIN=31 THEN GOTO ck_tool31
+	IF &ToolIN=32 THEN GOTO ck_tool32
+	IF &ToolIN=33 THEN GOTO ck_tool33
+	IF &ToolIN=34 THEN GOTO ck_tool34
 
-
-
+finishStatus:
     &test_val = (ABS(%(8) - &test_th))
     IF &test_val > .002 THEN GOTO Leave_on_problem    'Compare to current offset (w/slight tolerance for rounding)
 RETURN
@@ -89,100 +98,140 @@ RETURN
 ck_tool0:
   &zOffset = %(8) - &Tool0_Z        'Ryan added this
   &test_th = &Tool0_Z + &zOffset                                 'Expected TBC Offset for Z
-RETURN
+GOTO finishStatus
 ck_tool1:
   &zOffset = %(8) - &Tool1_Z        'Ryan added this
   &test_th= &Tool1_Z + &zOffset                                 'Expected TBC Offset for Z
-RETURN
+GOTO finishStatus
 ck_tool2:
   &zOffset = %(8) - &Tool2_Z        'Ryan added this
   &test_th= &Tool2_Z + &zOffset                                 'Expected TBC Offset for Z
-RETURN
+GOTO finishStatus
 ck_tool3:
   &zOffset = %(8) - &Tool3_Z        'Ryan added this
   &test_th= &Tool3_Z + &zOffset                                 'Expected TBC Offset for Z
-RETURN
+GOTO finishStatus
 ck_tool4:
   &zOffset = %(8) - &Tool4_Z        'Ryan added this
   &test_th= &Tool4_Z + &zOffset                                 'Expected TBC Offset for Z
-RETURN
+GOTO finishStatus
 ck_tool5:
   &zOffset = %(8) - &Tool5_Z        'Ryan added this
   &test_th= &Tool5_Z + &zOffset                                 'Expected TBC Offset for Z
-RETURN
+GOTO finishStatus
 ck_tool6:
   &zOffset = %(8) - &Tool6_Z        'Ryan added this
   &test_th= &Tool6_Z + &zOffset                                 'Expected TBC Offset for Z
-RETURN
+GOTO finishStatus
 ck_tool7:
   &zOffset = %(8) - &Tool7_Z        'Ryan added this
   &test_th= &Tool7_Z + &zOffset                                 'Expected TBC Offset for Z
-RETURN
+GOTO finishStatus
 ck_tool8:
   &zOffset = %(8) - &Tool8_Z        'Ryan added this
   &test_th= &Tool8_Z + &zOffset                                 'Expected TBC Offset for Z
-RETURN
+GOTO finishStatus
 ck_tool9:
   &zOffset = %(8) - &Tool9_Z        'Ryan added this
   &test_th= &Tool9_Z + &zOffset                                 'Expected TBC Offset for Z
-RETURN
+GOTO finishStatus
 ck_tool10:
   &zOffset = %(8) - &Tool10_Z        'Ryan added this
   &test_th= &Tool10_Z + &zOffset                                 'Expected TBC Offset for Z
-RETURN
+GOTO finishStatus
 ck_tool11:
   &zOffset = %(8) - &Tool11_Z        'Ryan added this
   &test_th= &Tool11_Z + &zOffset                                 'Expected TBC Offset for Z
-RETURN
+GOTO finishStatus
 ck_tool12:
   &zOffset = %(8) - &Tool12_Z        'Ryan added this
   &test_th= &Tool12_Z + &zOffset                                 'Expected TBC Offset for Z
-RETURN
+GOTO finishStatus
 ck_tool13:
   &zOffset = %(8) - &Tool13_Z        'Ryan added this
   &test_th= &Tool13_Z + &zOffset                                 'Expected TBC Offset for Z
-RETURN
+GOTO finishStatus
 ck_tool14:
   &zOffset = %(8) - &Tool14_Z        'Ryan added this
   &test_th= &Tool14_Z + &zOffset                                 'Expected TBC Offset for Z
-RETURN
+GOTO finishStatus
 ck_tool15:
   &zOffset = %(8) - &Tool15_Z        'Ryan added this
   &test_th= &Tool15_Z + &zOffset                                 'Expected TBC Offset for Z
-RETURN
+GOTO finishStatus
 ck_tool16:
   &zOffset = %(8) - &Tool16_Z        'Ryan added this
   &test_th= &Tool16_Z + &zOffset                                 'Expected TBC Offset for Z
-RETURN
+GOTO finishStatus
 ck_tool17:
   &zOffset = %(8) - &Tool17_Z        'Ryan added this
   &test_th= &Tool17_Z + &zOffset                                 'Expected TBC Offset for Z
-RETURN
+GOTO finishStatus
 ck_tool18:
   &zOffset = %(8) - &Tool18_Z        'Ryan added this
   &test_th= &Tool18_Z + &zOffset                                 'Expected TBC Offset for Z
-RETURN
+GOTO finishStatus
 ck_tool19:
   &zOffset = %(8) - &Tool19_Z        'Ryan added this
   &test_th= &Tool19_Z + &zOffset                                 'Expected TBC Offset for Z
-RETURN
+GOTO finishStatus
 ck_tool20:
   &zOffset = %(8) - &Tool20_Z        'Ryan added this
   &test_th= &Tool20_Z + &zOffset                                 'Expected TBC Offset for Z
-RETURN
+GOTO finishStatus
 ck_tool21:
   &zOffset = %(8) - &Tool21_Z        'Ryan added this
   &test_th= &Tool21_Z + &zOffset                                 'Expected TBC Offset for Z
-RETURN
+GOTO finishStatus
 ck_tool22:
   &zOffset = %(8) - &Tool22_Z        'Ryan added this
   &test_th= &Tool22_Z + &zOffset                                 'Expected TBC Offset for Z
-RETURN
+GOTO finishStatus
 ck_tool23:
   &zOffset = %(8) - &Tool23_Z        'Ryan added this
   &test_th= &Tool23_Z + &zOffset                                 'Expected TBC Offset for Z
-RETURN
+GOTO finishStatus
 ck_tool24:
   &zOffset = %(8) - &Tool24_Z        'Ryan added this
   &test_th= &Tool24_Z + &zOffset                                 'Expected TBC Offset for Z
-RETURN
+GOTO finishStatus
+ck_tool25:
+  &zOffset = %(8) - &Tool25_Z        'Ryan added this
+  &test_th= &Tool25_Z + &zOffset                                 'Expected TBC Offset for Z
+GOTO finishStatus
+ck_tool26:
+  &zOffset = %(8) - &Tool26_Z        'Ryan added this
+  &test_th= &Tool26_Z + &zOffset                                 'Expected TBC Offset for Z
+GOTO finishStatus
+ck_tool27:
+  &zOffset = %(8) - &Tool27_Z        'Ryan added this
+  &test_th= &Tool27_Z + &zOffset                                 'Expected TBC Offset for Z
+GOTO finishStatus
+ck_tool28:
+  &zOffset = %(8) - &Tool28_Z        'Ryan added this
+  &test_th= &Tool28_Z + &zOffset                                 'Expected TBC Offset for Z
+GOTO finishStatus
+ck_tool29:
+  &zOffset = %(8) - &Tool29_Z        'Ryan added this
+  &test_th= &Tool29_Z + &zOffset                                 'Expected TBC Offset for Z
+GOTO finishStatus
+ck_tool30:
+  &zOffset = %(8) - &Tool30_Z        'Ryan added this
+  &test_th= &Tool30_Z + &zOffset                                 'Expected TBC Offset for Z
+GOTO finishStatus
+ck_tool31:
+  &zOffset = %(8) - &Tool31_Z        'Ryan added this
+  &test_th= &Tool31_Z + &zOffset                                 'Expected TBC Offset for Z
+GOTO finishStatus
+ck_tool32:
+  &zOffset = %(8) - &Tool32_Z        'Ryan added this
+  &test_th= &Tool32_Z + &zOffset                                 'Expected TBC Offset for Z
+GOTO finishStatus
+ck_tool33:
+  &zOffset = %(8) - &Tool33_Z        'Ryan added this
+  &test_th= &Tool33_Z + &zOffset                                 'Expected TBC Offset for Z
+GOTO finishStatus
+ck_tool34:
+  &zOffset = %(8) - &Tool34_Z        'Ryan added this
+  &test_th= &Tool34_Z + &zOffset                                 'Expected TBC Offset for Z
+GOTO finishStatus
