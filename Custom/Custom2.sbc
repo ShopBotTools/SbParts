@@ -1,11 +1,12 @@
 'Zero Z Axis w/ Zzero Plate 
 '
 '
-
+C#,90
 
 
 If &ATC = 1 Then GoTo IsATC
 If &ATC = 0 Then GoTo IsMTC
+If &ATC = 2 Then GoTo IsATC
 If &ATC = 3 Then GoTo IsATC
 If &ATC = 4 Then GoTo IsATC
 IsMTC:
@@ -14,6 +15,8 @@ IsMTC:
 
 
 IsATC:
+	C#,89
+
 	FP,C:\SbParts\ZzeroATC.sbp
 	GoTo IsDone
 

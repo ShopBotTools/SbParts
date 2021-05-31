@@ -133,6 +133,12 @@ Position_Z:
 	If &ToolIN=33 Then GoTo settool33
 	If &ToolIN=34 Then GoTo settool34
 
+ManualDroptool:
+If &Tool = &ToolIN Then GoTo Finish_ToolChange 'NO NEED TO DO TOOL CHANGE
+J3,&tx,&ty,&ATC_safeclear
+MSGBOX(Please remove tool number &ToolIN and press OK,1,Manual Tool Change)
+GoTo DropStatus
+
 Droptool:
 
     If &Tool = &ToolIN Then GoTo Finish_ToolChange 'NO NEED TO DO TOOL CHANGE
@@ -165,14 +171,15 @@ Clip:
 	If &ATC = 3 Then gosub Retractbar 
 	If &ATC = 4 Then gosub Retractbar 
 	If &ATC = 1 Then SO,3,0
+DropStatus:
 	&ToolIN = 0
+	&Dropped = 1
     FP, &ATC_Write_Current_Status
     'Skip pick up if zero tool number and leave spindle empty
     If &newtool = 0 Then GoTo Finish_ToolChange
     
 ZeroToolDrop:    
     &newtool = &tool      'Set new tool number
-    &Dropped = 1
 
     If &newtool=0 Then GoTo settool0
     If &newtool=1 Then GoTo settool1
@@ -215,6 +222,13 @@ ZeroToolDrop:
 
 End                       'Exit if invalid tool number
 
+ManualChangetool:
+J3,&tx,&ty,&ATC_safeclear
+MSGBOX(Please insert tool number &tool and press OK,1,Manual Tool Change)
+&new_curZ = %(3) - ((&th + &zOffset) - %(8))  'update to current Z
+VA,,,&new_curZ,,,,,&th + &zOffset
+GoTo Finish_ToolChange
+
 Changetool:
     'Setup new Z height of bit relative to table surface from Table Base Coordinates
 	&exitX = &tx - &ATC_clipClearX * &clipOrientation
@@ -224,8 +238,11 @@ Changetool:
 	If &ATC = 1 Then SO,3,1  
 	If &ATC = 3 Then gosub Extendbar 
 	If &ATC = 4 Then gosub Extendbar
+	&new_curZ = %(3) - ((&th + &zOffset) - %(8))  'update to current Z
+    VA,,,&new_curZ,,,,,&th + &zOffset
+	&clipHeight = &tz - %(8)   
 
-CT1:   
+CT1:
 	JZ, &clipHeight + &thClearance     'Jog Z to 1 inch over toolholder height
     SO, 8,1                  'Open toolholder chuck
     PAUSE 0.2
@@ -239,16 +256,16 @@ CT1:
 	JZ,&ATC_safeclear
 	If %(57) = 0 Then GoTo toolerror        
     IF &ATC = 1 THEN SO,3,0           'Close Dust skirt    
-    &Dropped = 0  
 	JY, &exitY
 	JX, &exitX 
-    &Dropped = 0
 
 Finish_ToolChange:
-	&ToolIN = &newTool
-    If &newtool = 0 Then J2, &tx, &ty
+    &Dropped = 0
+	&ToolIN = &tool
+    If &tool = 0 Then J2, &tx, &ty
     &ATC_safeclear =  -1 * ( %(8) + %(63) + &zBackoff )
     If &ToolIN = 0 Then JZ,&ATC_safeclear
+	If &ToolIN = 0 Then &Dropped = 1
     'Write all updated variables
     FP, &ATC_Write_Current_Status
     FP, &ATC_Check_Status
@@ -518,8 +535,8 @@ settool14:
   &th= &Tool25_Z 
   '&sy= &ty - &ATC_clipSafe
   &sx = &tx + &ATC_clipSafe
-  If &Dropped = 0 Then GoTo Droptool
- GoTo Changetool
+  If &Dropped = 0 Then GoTo ManualDroptool
+ GoTo ManualChangetool
 
   settool26:
   &tx= &Clip26_X - &xOffset - %(6) - %(61)
@@ -528,8 +545,8 @@ settool14:
   &th= &Tool26_Z 
   '&sy= &ty - &ATC_clipSafe
   &sx = &tx + &ATC_clipSafe
-  If &Dropped = 0 Then GoTo Droptool
- GoTo Changetool
+  If &Dropped = 0 Then GoTo ManualDroptool
+ GoTo ManualChangetool
 
   settool27:
   &tx= &Clip27_X - &xOffset - %(6) - %(61)
@@ -538,8 +555,8 @@ settool14:
   &th= &Tool27_Z 
   '&sy= &ty - &ATC_clipSafe
   &sx = &tx + &ATC_clipSafe
-  If &Dropped = 0 Then GoTo Droptool
- GoTo Changetool
+  If &Dropped = 0 Then GoTo ManualDroptool
+ GoTo ManualChangetool
 
   settool28:
   &tx= &Clip28_X - &xOffset - %(6) - %(61)
@@ -548,8 +565,8 @@ settool14:
   &th= &Tool28_Z 
   '&sy= &ty - &ATC_clipSafe
   &sx = &tx + &ATC_clipSafe
-  If &Dropped = 0 Then GoTo Droptool
- GoTo Changetool
+  If &Dropped = 0 Then GoTo ManualDroptool
+ GoTo ManualChangetool
 
   settool29:
   &tx= &Clip29_X - &xOffset - %(6) - %(61)
@@ -558,8 +575,8 @@ settool14:
   &th= &Tool29_Z 
   '&sy= &ty - &ATC_clipSafe
   &sx = &tx + &ATC_clipSafe
-  If &Dropped = 0 Then GoTo Droptool
- GoTo Changetool
+  If &Dropped = 0 Then GoTo ManualDroptool
+ GoTo ManualChangetool
 
   settool30:
   &tx= &Clip30_X - &xOffset - %(6) - %(61)
@@ -568,8 +585,8 @@ settool14:
   &th= &Tool30_Z 
   '&sy= &ty - &ATC_clipSafe
   &sx = &tx + &ATC_clipSafe
-  If &Dropped = 0 Then GoTo Droptool
- GoTo Changetool
+  If &Dropped = 0 Then GoTo ManualDroptool
+ GoTo ManualChangetool
 
   settool31:
   &tx= &Clip31_X - &xOffset - %(6) - %(61)
@@ -578,8 +595,8 @@ settool14:
   &th= &Tool31_Z 
   '&sy= &ty - &ATC_clipSafe
   &sx = &tx + &ATC_clipSafe
-  If &Dropped = 0 Then GoTo Droptool
- GoTo Changetool
+  If &Dropped = 0 Then GoTo ManualDroptool
+ GoTo ManualChangetool
 
   settool32:
   &tx= &Clip32_X - &xOffset - %(6) - %(61)
@@ -588,8 +605,8 @@ settool14:
   &th= &Tool32_Z 
   '&sy= &ty - &ATC_clipSafe
   &sx = &tx + &ATC_clipSafe
-  If &Dropped = 0 Then GoTo Droptool
- GoTo Changetool
+  If &Dropped = 0 Then GoTo ManualDroptool
+ GoTo ManualChangetool
 
   settool33:
   &tx= &Clip33_X - &xOffset - %(6) - %(61)
@@ -598,8 +615,8 @@ settool14:
   &th= &Tool33_Z 
   '&sy= &ty - &ATC_clipSafe
   &sx = &tx + &ATC_clipSafe
-  If &Dropped = 0 Then GoTo Droptool
- GoTo Changetool
+  If &Dropped = 0 Then GoTo ManualDroptool
+ GoTo ManualChangetool
 
   settool34:
   &tx= &Clip34_X - &xOffset - %(6) - %(61)
@@ -608,8 +625,8 @@ settool14:
   &th= &Tool34_Z 
   '&sy= &ty - &ATC_clipSafe
   &sx = &tx + &ATC_clipSafe
-  If &Dropped = 0 Then GoTo Droptool
- GoTo Changetool
+  If &Dropped = 0 Then GoTo ManualDroptool
+ GoTo ManualChangetool
 
 toolerror:
   GoSub Exit_Resets

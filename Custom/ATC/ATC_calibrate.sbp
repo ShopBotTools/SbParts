@@ -399,6 +399,38 @@ CLEANUP:
     WRITE #1;"&CLIP24_Z = ";&Z24name
 
 WRAPUP:
+	WRITE #1; "&CLIP25_X = &manualchgX"
+	WRITE #1; "&CLIP25_Y = &manualchgY"
+	WRITE #1; "&CLIP25_Z = &CLIP1_Z"
+	WRITE #1; "&CLIP26_X = &manualchgX"
+	WRITE #1; "&CLIP26_Y = &manualchgY"
+	WRITE #1; "&CLIP26_Z = &CLIP1_Z"
+	WRITE #1; "&CLIP27_X = &manualchgX"
+	WRITE #1; "&CLIP27_Y = &manualchgY"
+	WRITE #1; "&CLIP27_Z = &CLIP1_Z"
+	WRITE #1; "&CLIP28_X = &manualchgX"
+	WRITE #1; "&CLIP28_Y = &manualchgY"
+	WRITE #1; "&CLIP28_Z = &CLIP1_Z"
+	WRITE #1; "&CLIP29_X = &manualchgX"
+	WRITE #1; "&CLIP29_Y = &manualchgY"
+	WRITE #1; "&CLIP29_Z = &CLIP1_Z"
+	WRITE #1; "&CLIP30_X = &manualchgX"
+	WRITE #1; "&CLIP30_Y = &manualchgY"
+	WRITE #1; "&CLIP30_Z = &CLIP1_Z"
+	WRITE #1; "&CLIP31_X = &manualchgX"
+	WRITE #1; "&CLIP31_Y = &manualchgY"
+	WRITE #1; "&CLIP31_Z = &CLIP1_Z"
+	WRITE #1; "&CLIP32_X = &manualchgX"
+	WRITE #1; "&CLIP32_Y = &manualchgY"
+	WRITE #1; "&CLIP32_Z = &CLIP1_Z"
+	WRITE #1; "&CLIP33_X = &manualchgX"
+	WRITE #1; "&CLIP33_Y = &manualchgY"
+	WRITE #1; "&CLIP33_Z = &CLIP1_Z"
+	WRITE #1; "&CLIP34_X = &manualchgX"
+	WRITE #1; "&CLIP34_Y = &manualchgY"
+	WRITE #1; "&CLIP34_Z = &CLIP1_Z"
+
+
     CLOSE #1
 
  end

@@ -50,11 +50,6 @@
   SO, 1, 0
   SO, 2, 0
 
-'Loads ATC variables by calling Custom Cut 89   
-   C#,89
-'Load variables from my_variables.sbc, process called by Custom Cut 90
-   C#,90
-
 'Make sure that the units are those used with the Set-Up Program and expected by my_variables.sbc
    &SCALE = 1
    IF &my_units <> %(25) THEN GOSUB CHANGEUNITS
@@ -70,8 +65,21 @@
       IF &my_ZzeroStartX <> no THEN GOSUB STARTMOVE
 
    'Save current speeds and set zeroing speed
-      &start_Zmove_Speed = %(73)
-      &start_XYmove_Speed = %(71)
+    &start_XYmove_Speed = %(71)
+    &start_XYjog_Speed = %(76)
+    &start_Zmove_speed = %(73)
+    &start_Zjog_speed = %(78)
+
+    &XYapproach_Speed = &start_XYmove_Speed
+    &XYtempJog_Speed = &start_XYjog_Speed
+    &Zapproach_Speed = &start_Zmove_Speed
+    &ZtempJog_Speed = &start_Zjog_Speed
+
+    If &XYapproach_Speed > &TopXY_ApproachSpeed Then &XYapproach_Speed = &TopXY_ApproachSpeed
+    If &XYtempJog_Speed > &TopXY_JogSpeed Then &XYtempJog_Speed = &TopXY_JogSpeed
+    If &Zapproach_Speed > &TopZ_ApproachSpeed Then &Zapproach_Speed = &TopZ_ApproachSpeed
+    If &ZtempJog_Speed > &TopZ_JogSpeed Then &ZtempJog_Speed = &TopZ_JogSpeed
+
 
 
 '----------------------------------------------------------------Zeroing PROGRAM 
@@ -85,7 +93,7 @@ FIRST PLUNGE:
 'Now set-up the contact switch action ... 
   ON INP(&my_ZzeroInput,1) GOTO CONTACT1 'this is where we'll go on contact with plate
 
-  VS, &xyTopApproachSpeed,&zTopApproachSpeed
+  VS, &XYapproach_Speed,&Zapproach_Speed
   MZ, %(3) - &zSearch            'Start continuous plunge ... while looking for contact to occur
 
 'If we don't contact anything for some reason we end up here

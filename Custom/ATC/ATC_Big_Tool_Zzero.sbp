@@ -1,24 +1,46 @@
 'ATCZZ.sbp --ATC Homing program for calculating the Z height of each tool
+' 5/5/2017 DJP - Commented out dust skirt actuation, added &SafeX
+' 10/18/17 GAB - Added test for ATC type 1 for dust skirt open
+'                Combined to work with both PRS and PRS4 ATC
+' 6/20/17 GAB - Removed SC command on line 8, command not supported
+' 3/6/18 GAB - Add test for PRS4 before first plunge and if not, open dust skirt and
+'               prompt to add clip to bit
+'            - Add test for PRS4 before END and if not, close dust skirt and prompt
+'               to remove clip from bit
 
   SA,           'Set to Absolute Mode
   SW, 0         'Deactivate Warning duration
-  SC, 0         'Run in single step mode
-
+ 
   SO,1,0        'Make sure spindle is not running
 
+If %(25) = 1 Then GoTo METRICUNITS
+    &bigZclear = 36
+		&bigZplunge = -30
+		If &ATC = 1 Then &ZUP = 3    'Distance off table to pull up
+    If &ATC = 2 Then &ZUP = 2
+		&zZeroMoveSpeed = .75
+		&ZforVA = -0.5
+		&SafeX = 12
+    GoTo ZZERO_INITVARS
+METRICUNITS:
+    &bigZclear = 610
+		&bigZplunge = -460
+		If &ATC = 1 Then &ZUP = 76    'Distance off table to pull up
+    If &ATC = 2 Then &ZUP = 104
+		&zZeroMoveSpeed = 19
+		&ZforVA = -12.7
+		&SafeX = 300
 'Initialize Variables
 ZZERO_INITVARS:
     'Initialize
   &Ztop = 0
   &TotalZ = 0
-  &zHeight = 0
 TOP:
   INPUT "Bit number to Zero:" &tool
 
-  FP, &ATC_Run_ATC
-  IF &Tool > 34 THEN GOTO Endfile
+  FP, C:\SbParts\Custom\ATC\ATC.SBP
 
-  MS,,&TopZ_ApproachSpeed    'Change move speed to .75
+  MS,,&zZeroMoveSpeed	    'Change move speed to .75
 
   SF, 0         'Deactivate software limits
   VN, 0        'Turn limit switch OFF
@@ -32,22 +54,19 @@ TOP:
     MZ, &zSearch
   If &ATC = 4 Then GoSub LeaveSafeDTMATC
 
-  VN, 0        'Turn limit switch OFF
+  VN, 1        'Turn limit switch ON
 
-  VA,,,-&zBackoff,,,,,0
-  J2, &sx , &ATC_zZeroY - %(7)
-  JY, &ATC_zZeroY - %(7)       'XY Location for Z Zeroing (Enter X&Y Location of Fixed Zero plate)
-  JX, &ATC_zZeroX - %(6)
-
+ VA,,,-&zBackoff,,,,,0
   If &ATC=1 Then SO,3,1
-  If &ATC=3 Then SO,7,1
-  If &ATC=4 Then SO,7,1
-  'Press ENTER when clip is on bit shank and ready to zero
-  PAUSE .5
-
+    PAUSE .5
+'The keypad will now open. Move the tool to your prefered Z zeroing location.  Close the keypad when complete.
+Pause
+SK
+'Attach clip to bit and plate z zero plate under spindle.
+PAUSE
 'Set the contact switch action ... Plate NOW SET FOR Input Switch #1
   ON INP(1,1) GoSub CONTACT1
-    MZ, -&zSearch
+    MZ, &bigZplunge 
 
   PRINT, "Tool #" & &Tool & " height = " & &zHeight
 
@@ -113,7 +132,7 @@ CONTACT1:
   ON INP(1,1)   'First set switch to nothing to prevent secondary trigger
   PAUSE .2
   
-  &zHeight = %(3)
+  &zHeight = %(3) - &PlateOffset - &my_ZzeroThickness
   
   JZ,%(3) + &zBackoff  'Pull-up SLIGHTLY ... 
   'Now We're Ready to Make Slow Move for Accurate Reading

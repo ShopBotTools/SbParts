@@ -18,8 +18,20 @@
     &th_z = 0     'Initialize to zero
     C#,90         'Load the custom variables file from Custom Cut 90
     C#,89         'Read variables from ATC_Variables and ATC_Tool_Variables
-    C#,88         'Set speeds and scale depending on unit type
+    &start_XYmove_Speed = %(71)
+    &start_XYjog_Speed = %(76)
+    &start_Zmove_speed = %(73)
+    &start_Zjog_speed = %(78)
 
+    &XYapproach_Speed = &start_XYmove_Speed
+    &XYtempJog_Speed = &start_XYjog_Speed
+    &Zapproach_Speed = &start_Zmove_Speed
+    &ZtempJog_Speed = &start_Zjog_Speed
+
+    If &XYapproach_Speed > &TopXY_ApproachSpeed Then &XYapproach_Speed = &TopXY_ApproachSpeed
+    If &XYtempJog_Speed > &TopXY_JogSpeed Then &XYtempJog_Speed = &TopXY_JogSpeed
+    If &Zapproach_Speed > &TopZ_ApproachSpeed Then &Zapproach_Speed = &TopZ_ApproachSpeed
+    If &ZtempJog_Speed > &TopZ_JogSpeed Then &ZtempJog_Speed = &TopZ_JogSpeed
 'Check status of input #3
     &prox_status = %(53)
     IF &prox_status = 0 THEN GOSUB Getoffprox
@@ -60,13 +72,13 @@
 
 'Set the contact switch action ... Plate NOW SET FOR Input Switch #1
     ON INP(1,1) GOSUB CONTACT1
-      JS,,&zTopJogSpeed   		 'Change jog speed to .75
+      JS,,&TopZ_JogSpeed  		 'Change jog speed to .75
 
 	JZ, -&zSearch
 
     ON INP(1,1) GOSUB CONTACT2 'this is where we'll go on contact with plate
 
-      MS,,&zTopJogSpeed	    	 'Change move speed to .75
+      MS,,&TopZ_JogSpeed	    	 'Change move speed to .75
 
 	MZ, -&zSearch
 

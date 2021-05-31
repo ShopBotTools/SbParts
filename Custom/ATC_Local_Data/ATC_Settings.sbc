@@ -5,18 +5,18 @@ If %(25) = 0 Then GoTo SETUPVALUES
 
 SETUPVALUES:
 
-	&zBackoff = 0.5 * &unitMultiplier
+	&zBackoff = 0.75 * &unitMultiplier
 	&zSearch = 36.0 * &unitMultiplier
-	&zSlowApproachSpeed = 0.4 * &unitMultiplier
-	&zTopApproachSpeed = 0.5 * &unitMultiplier
-	&zTopJogSpeed = 1.0 * &unitMultiplier
+	&ZSlowApproachSpeed = 0.4 * &unitMultiplier
+	&TopZ_ApproachSpeed = 0.5 * &unitMultiplier
+	&TopZ_JogSpeed = 1.0 * &unitMultiplier
     &manualchgX = 5.0 * &unitMultiplier
     &manualchgY = 5.0 * &unitMultiplier
 	&xyBackoff = 2.0 * &unitMultiplier
 	&xySearch = 200.0 * &unitMultiplier
-	&xySlowApproachSpeed = 0.4 * &unitMultiplier
-	&xyTopApproachSpeed = 1.0 * &unitMultiplier
-	&xyTopJogSpeed = 4.0 * &unitMultiplier
+	&XYSlowApproachSpeed = 0.4 * &unitMultiplier
+	&TopXY_ApproachSpeed = 1.0 * &unitMultiplier
+	&TopXY_JogSpeed = 4.0 * &unitMultiplier
 
 	'Toolchange values
 	&thClearance = 0.5 * &unitMultiplier 'clearance above toolholder during dropoff

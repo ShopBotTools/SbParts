@@ -40,12 +40,17 @@ Leave_on_problem:
   ''###?? Could more specifically report the nature of failure, or help user fix ??
 
    &ATC_status = PROBLEM
+   PRINT "ATC Status =", &ATC_status
+   PRINT ABS(%(8) - &test_th)
    SF,1
 END
 
 'Subroutines ==================================================================================================================
 Eval_Offset:
-       &count = 0                                                   'Compare to each possible integer for full test of tool number
+	   If &ToolIN > 34 THEN GOTO Leave_on_problem
+       If &ToolIN > 24 THEN GOTO ToolNum_OK
+	   &count = 0
+	                                                      'Compare to each possible integer for full test of tool number
     Check_ToolNum:
         If &ToolIN = &count THEN GOTO ToolNum_OK
         &count = &count + 1
