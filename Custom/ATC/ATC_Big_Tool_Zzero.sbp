@@ -1,16 +1,9 @@
-'ATCZZ.sbp --ATC Homing program for calculating the Z height of each tool
-' 5/5/2017 DJP - Commented out dust skirt actuation, added &SafeX
-' 10/18/17 GAB - Added test for ATC type 1 for dust skirt open
-'                Combined to work with both PRS and PRS4 ATC
-' 6/20/17 GAB - Removed SC command on line 8, command not supported
-' 3/6/18 GAB - Add test for PRS4 before first plunge and if not, open dust skirt and
-'               prompt to add clip to bit
-'            - Add test for PRS4 before END and if not, close dust skirt and prompt
-'               to remove clip from bit
-
+  C#,89
+  C#,90
+  
   SA,           'Set to Absolute Mode
   SW, 0         'Deactivate Warning duration
- 
+   
   SO,1,0        'Make sure spindle is not running
 
 If %(25) = 1 Then GoTo METRICUNITS
@@ -38,7 +31,7 @@ ZZERO_INITVARS:
 TOP:
   INPUT "Bit number to Zero:" &tool
 
-  FP, C:\SbParts\Custom\ATC\ATC.SBP
+  FP, &ATC_Run_ATC
 
   MS,,&zZeroMoveSpeed	    'Change move speed to .75
 

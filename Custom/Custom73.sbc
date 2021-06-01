@@ -17,6 +17,8 @@ If &ATC = 0 Then GoTo IsMTC
 END
 
 IsATC:
+C#,89
+C#,90
     FP, c:\SbParts\Custom\ATC\ATC_Get_PlateOffset.sbp
     END
 
