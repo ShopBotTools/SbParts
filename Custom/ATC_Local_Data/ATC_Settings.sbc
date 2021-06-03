@@ -17,7 +17,8 @@ SETUPVALUES:
 	&XYSlowApproachSpeed = 0.4 * &unitMultiplier
 	&TopXY_ApproachSpeed = 1.0 * &unitMultiplier
 	&TopXY_JogSpeed = 4.0 * &unitMultiplier
-
+	&Rotary = 1 'set to 1 if using a rotary tool holder
+	&Side = 1 'set to 1 if tool clips are side mounted
 	'Toolchange values
 	&thClearance = 0.5 * &unitMultiplier 'clearance above toolholder during dropoff
 
@@ -61,9 +62,9 @@ PRS3ATC:
 	&bigZplunge = -30 * &unitMultiplier
 	&ZUP = .5 * &unitMultiplier 'Pull up from pressure plate during bit measurement
 	&ZforVA = -0.5 'pull away from z prox during bit measurement
-	&ATC_clipSafe = -3 * &unitMultiplier 'Change + to - if tool clips are on left side
-	&ATC_clipClearX = -3 * &unitMultiplier
-    &ATC_clipClearY = 0 * &unitMultiplier
+	&ATC_clipSafe = 0 * &unitMultiplier 'Change + to - if tool clips are on left side
+	&ATC_clipClearX = 0 * &unitMultiplier
+    &ATC_clipClearY = -3 * &unitMultiplier
 	'Prox switch setup values
     &X_Prox = 2
 	&Y_Prox = 3
@@ -91,9 +92,9 @@ PRS4ATC:
 	&bigZclear = 36 * &unitMultiplier
 	&bigZplunge = -30 * &unitMultiplier
 	&ZUP = .5 * &unitMultiplier
-	&ATC_clipSafe = 1.375 * &unitMultiplier 'Change + to - if tool clips are on left side
-    &ATC_clipClearX = 8 * &unitMultiplier
-    &ATC_clipClearY = 2.25 * &unitMultiplier
+	&ATC_clipSafe = 0 * &unitMultiplier 'Change + to - if tool clips are on left side
+    &ATC_clipClearX = 3 * &unitMultiplier
+    &ATC_clipClearY = 3 * &unitMultiplier
     &Prox_State = 0
 	&X_Prox = 2
 	&Y_Prox = 3

@@ -14,6 +14,9 @@
 'Determine whether we are in Preview mode or Move/Cut mode
     &modenow = %(22)
     If &modenow = 1 Then GoSub Changemode
+	Shell "C:\SbParts\ToolChange.exe 1,1"
+	Shell "C:\SbParts\ToolChange.exe 2,1"
+	'pause
 	If &ToolIN = 0 Then Goto ZeroToolIN 
 'Check to make sure there is a tool holder properly inserted into spindle
 
