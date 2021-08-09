@@ -54,6 +54,8 @@
     &newtool = -1
 	&clipOrientation = -1
     IF &ATC = 2 THEN &clipOrientation = 1
+	&startX = %(1)
+	&startY = %(2)
 	&exitX = 0
 	&exitY = 0
 	&exitZ = 0
@@ -134,10 +136,10 @@ Position_Z:
 	If &ToolIN=34 Then GoTo settool34
 
 ManualDroptool:
-If &Tool = &ToolIN Then GoTo Finish_ToolChange 'NO NEED TO DO TOOL CHANGE
-J3,&tx,&ty,&ATC_safeclear
-MSGBOX(Please remove tool number &ToolIN and press OK,1,Manual Tool Change)
-GoTo DropStatus
+	If &Tool = &ToolIN Then GoTo Finish_ToolChange 'NO NEED TO DO TOOL CHANGE
+	J3,&tx,&ty,&ATC_safeclear
+	MSGBOX(Please remove tool number &ToolIN and press OK,1,Manual Tool Change)
+	GoTo DropStatus
 
 Droptool:
     If &Tool = &ToolIN Then GoTo Finish_ToolChange 'NO NEED TO DO TOOL CHANGE
@@ -148,9 +150,9 @@ Droptool:
 	GoSub PositionClip
 	'JX, &sx
 	'JY, &ty
-
     If &ATC = 1 Then SO,3,1
 	IF &Rotary = 1 Then gosub RotaryUp
+
 Clip:
     &clipHeight = &tz - %(8)
     JZ, &clipHeight       'Jog to Z height of toolholder clip
@@ -171,6 +173,7 @@ Clip:
 	If &ATC = 3 Then gosub Retractbar 
 	If &ATC = 4 Then gosub Retractbar 
 	If &ATC = 1 Then SO,3,0
+
 DropStatus:
 	&ToolIN = 0
 	&Dropped = 1
@@ -216,7 +219,6 @@ ZeroToolDrop:
 	If &newtool=32 Then GoTo settool32
 	If &newtool=33 Then GoTo settool33
 	If &newtool=34 Then GoTo settool34
-	
 
     GoSub Exit_Resets ''##?? Error Handler needed here??
 
@@ -233,7 +235,7 @@ Changetool:
 	'Setup new Z height of bit relative to table surface from Table Base Coordinates
 	&exitX = &tx - &ATC_clipClearX * &clipOrientation
 	&exitY = &ty  - &ATC_clipClearY
-	If &EXITPLANNING < 0 THEN GoSub PlanExit
+	GoSub PlanExit
 	J2, &tx, &ty
 	IF &Rotary = 1 Then gosub RotaryChange
 	If &ATC = 1 Then SO,3,1  
@@ -712,9 +714,14 @@ Return
 
 PlanExit:
 	&clipX = &tx + &xOffset + %(6) + %(61)
+	IF &EXITPLANNING < 0 THEN goto PlannedExit
+	IF &startX >= &clipX THEN goto ExitRight
+	IF &startX < &clipX THEN goto ExitLeft
+	goto ExitLeft	
+PlannedExit:
 	IF &NEXTX >= &clipX THEN goto ExitRight
 	IF &NEXTX < &clipX THEN goto ExitLeft
-
+	goto ExitLeft
 ExitRight:
 	&exitX = &tx + &ATC_clipClearX * &clipOrientation
 	&exitY = &ty - &ATC_clipClearY
@@ -722,13 +729,13 @@ ExitRight:
 ExitLeft:
 	&exitX = &tx - &ATC_clipClearX * &clipOrientation
 	&exitY = &ty - &ATC_clipClearY
-	FinishExitPlan:
+FinishExitPlan:
 return
 
 PlanEnter:
 	IF &SideMount = 1 Then goto FinishEnterPlan
-	IF %(1) >= &tx THEN goto EnterRight 'need to add offsets here if file ran in 2D offset or user zeroed in a different location
-	IF %(1) < &tx THEN goto EnterLeft 'What to do if side mounted?
+	IF &startX >= &tx THEN goto EnterRight 'need to add offsets here if file ran in 2D offset or user zeroed in a different location
+	IF &startX < &tx THEN goto EnterLeft 'What to do if side mounted?
 	EnterRight:
 	&enterX = &tx + &ATC_clipSafe * &clipOrientation
 	&enterY = &ty - &ATC_clipClearY

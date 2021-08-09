@@ -116,8 +116,8 @@
 
 'Manual Tool Change numbers
 &MaxDepth = -1 
-&ATC = 2 
-&z_tool=1
+&ATC = 5 
+&z_tool= 4  
 &a_tool=21
 &z_drill_bit2=31
 &z_drill_bit=41
