@@ -14,8 +14,7 @@
 'Determine whether we are in Preview mode or Move/Cut mode
     &modenow = %(22)
     If &modenow = 1 Then GoSub Changemode
-	Shell "C:\SbParts\ToolChange.exe 1,1"
-	Shell "C:\SbParts\ToolChange.exe 2,1"
+	IF &Rotary = 1 Then GoSub RotaryInitialize
 	'pause
 	If &ToolIN = 0 Then Goto ZeroToolIN 
 'Check to make sure there is a tool holder properly inserted into spindle
@@ -220,6 +219,11 @@ Changeunits:
    If %(25) = 1 Then &SCALE = 25.4
    If %(25) = 0 Then &SCALE = 0.03937
  Return
+
+RotaryInitialize:
+	Shell "C:\SbParts\ToolChange.exe 1,1"
+	Shell "C:\SbParts\ToolChange.exe 2,1"
+Return
 
 ToolNotIN:
     'Tool Holder Not in spindle! Resetting values for zero tool.
