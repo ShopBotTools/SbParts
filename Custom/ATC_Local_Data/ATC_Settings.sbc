@@ -17,8 +17,8 @@ SETUPVALUES:
 	&XYSlowApproachSpeed = 0.4 * &unitMultiplier
 	&TopXY_ApproachSpeed = 1.0 * &unitMultiplier
 	&TopXY_JogSpeed = 4.0 * &unitMultiplier
-	&Rotary = 1 'set to 1 if using a rotary tool holder
-	&Side = 1 'set to 1 if tool clips are side mounted
+	&Rotary = 0 'set to 1 if using a rotary tool holder
+	&Side = 0 'set to 1 if tool clips are side mounted
 	'Toolchange values
 	&thClearance = 0.5 * &unitMultiplier 'clearance above toolholder during dropoff
 
@@ -93,8 +93,8 @@ PRS4ATC:
 	&bigZplunge = -30 * &unitMultiplier
 	&ZUP = .5 * &unitMultiplier
 	&ATC_clipSafe = 0 * &unitMultiplier 'Change + to - if tool clips are on left side
-    &ATC_clipClearX = 3 * &unitMultiplier
-    &ATC_clipClearY = 3 * &unitMultiplier
+    &ATC_clipClearX = 1.5 * &unitMultiplier
+    &ATC_clipClearY = 1.5 * &unitMultiplier
     &Prox_State = 0
 	&X_Prox = 2
 	&Y_Prox = 3

@@ -151,7 +151,7 @@ Droptool:
 	'JX, &sx
 	'JY, &ty
     If &ATC = 1 Then SO,3,1
-	IF &Rotary = 1 Then gosub RotaryUp
+'	IF &Rotary = 1 Then gosub RotaryUp
 
 Clip:
     &clipHeight = &tz - %(8)
@@ -237,7 +237,7 @@ Changetool:
 	&exitY = &ty  - &ATC_clipClearY
 	GoSub PlanExit
 	J2, &tx, &ty
-	IF &Rotary = 1 Then gosub RotaryChange
+'	IF &Rotary = 1 Then gosub RotaryChange
 	If &ATC = 1 Then SO,3,1  
 	If &ATC = 3 Then gosub Extendbar 
 	If &ATC = 4 Then gosub Extendbar
@@ -261,7 +261,7 @@ CT1:  'What is this for?
 	JZ,&ATC_safeclear
 	If %(57) = 0 Then GoTo toolerror        
     IF &ATC = 1 THEN SO,3,0           'Close Dust skirt  
-	IF &Rotary = 1 Then gosub RotaryDown  
+'	IF &Rotary = 1 Then gosub RotaryDown  
 	JY, &exitY
 	JX, &exitX 
 
@@ -301,7 +301,7 @@ settool1:
   &tz= &Clip1_Z - %(63)
   &th= &Tool1_Z 
   &sy= &ty + &ATC_clipClearY
-  &sx = &tx + &ATC_clipSafe
+  &sx = &tx + &ATC_clipClearX
 
   If &Dropped = 0 Then GoTo Droptool
  GoTo Changetool
@@ -312,7 +312,7 @@ settool2:
   &tz= &Clip2_Z  - %(63)
   &th= &Tool2_Z 
   &sy= &ty + &ATC_clipClearY
-  &sx = &tx + &ATC_clipSafe
+  &sx = &tx + &ATC_clipClearX
   If &Dropped = 0 Then GoTo Droptool
  GoTo Changetool
 
@@ -322,7 +322,7 @@ settool3:
   &tz= &Clip3_Z  - %(63)
   &th= &Tool3_Z 
   &sy= &ty + &ATC_clipClearY
-  &sx= &tx + &ATC_clipSafe
+  &sx= &tx + &ATC_clipClearX
   If &Dropped = 0 Then GoTo Droptool
  GoTo Changetool
 
@@ -332,7 +332,7 @@ settool4:
   &tz= &Clip4_Z  - %(63)
   &th= &Tool4_Z 
   &sy= &ty + &ATC_clipClearY
-  &sx = &tx + &ATC_clipSafe
+  &sx = &tx + &ATC_clipClearX
   If &Dropped = 0 Then GoTo Droptool
  GoTo Changetool
 
@@ -342,7 +342,7 @@ settool5:
   &tz= &Clip5_Z  - %(63)
   &th= &Tool5_Z 
   &sy= &ty + &ATC_clipClearY
-  &sx = &tx + &ATC_clipSafe
+  &sx = &tx + &ATC_clipClearX
   If &Dropped = 0 Then GoTo Droptool
  GoTo Changetool
 
@@ -352,7 +352,7 @@ settool6:
   &tz= &Clip6_Z  - %(63)
   &th= &Tool6_Z 
   &sy= &ty + &ATC_clipClearY
-  &sx = &tx + &ATC_clipSafe
+  &sx = &tx + &ATC_clipClearX
   If &Dropped = 0 Then GoTo Droptool
  GoTo Changetool
 
@@ -362,7 +362,7 @@ settool7:
   &tz= &Clip7_Z  - %(63)
   &th= &Tool7_Z 
   &sy= &ty + &ATC_clipClearY
-  &sx = &tx + &ATC_clipSafe
+  &sx = &tx + &ATC_clipClearX
   If &Dropped = 0 Then GoTo Droptool
  GoTo Changetool
 
@@ -372,7 +372,7 @@ settool8:
   &tz= &Clip8_Z  - %(63)
   &th= &Tool8_Z 
   &sy= &ty + &ATC_clipClearY
-  &sx = &tx + &ATC_clipSafe
+  &sx = &tx + &ATC_clipClearX
   If &Dropped = 0 Then GoTo Droptool
  GoTo Changetool
 
@@ -382,7 +382,7 @@ settool9:
   &tz= &Clip9_Z  - %(63)
   &th= &Tool9_Z 
   &sy= &ty + &ATC_clipClearY
-  &sx = &tx + &ATC_clipSafe
+  &sx = &tx + &ATC_clipClearX
   If &Dropped = 0 Then GoTo Droptool
  GoTo Changetool
 
@@ -392,7 +392,7 @@ settool10:
   &tz= &Clip10_Z  - %(63)
   &th= &Tool10_Z 
   &sy= &ty + &ATC_clipClearY
-  &sx = &tx + &ATC_clipSafe
+  &sx = &tx + &ATC_clipClearX
   If &Dropped = 0 Then GoTo Droptool
  GoTo Changetool
 
@@ -402,7 +402,7 @@ settool11:
   &tz= &Clip11_Z  - %(63)
   &th= &Tool11_Z 
   &sy= &ty + &ATC_clipClearY
-  &sx = &tx + &ATC_clipSafe
+  &sx = &tx + &ATC_clipClearX
   If &Dropped = 0 Then GoTo Droptool
  GoTo Changetool
 
@@ -412,7 +412,7 @@ settool12:
   &tz= &Clip12_Z  - %(63)
   &th= &Tool12_Z 
   &sy= &ty + &ATC_clipClearY
-  &sx = &tx + &ATC_clipSafe
+  &sx = &tx + &ATC_clipClearX
   If &Dropped = 0 Then GoTo Droptool
  GoTo Changetool
 
@@ -422,7 +422,7 @@ settool13:
   &tz= &Clip13_Z  - %(63)
   &th= &Tool13_Z 
   &sy= &ty + &ATC_clipClearY
-  &sx = &tx + &ATC_clipSafe
+  &sx = &tx + &ATC_clipClearX
   If &Dropped = 0 Then GoTo Droptool
  GoTo Changetool
 
@@ -432,7 +432,7 @@ settool14:
   &tz= &Clip14_Z  - %(63)
   &th= &Tool14_Z 
   &sy= &ty + &ATC_clipClearY
-  &sx = &tx + &ATC_clipSafe
+  &sx = &tx + &ATC_clipClearX
   If &Dropped = 0 Then GoTo Droptool
  GoTo Changetool
 
@@ -442,7 +442,7 @@ settool14:
   &tz= &Clip15_Z  - %(63)
   &th= &Tool15_Z 
   &sy= &ty + &ATC_clipClearY
-  &sx = &tx + &ATC_clipSafe
+  &sx = &tx + &ATC_clipClearX
   If &Dropped = 0 Then GoTo Droptool
  GoTo Changetool
 
@@ -452,7 +452,7 @@ settool14:
   &tz= &Clip16_Z  - %(63)
   &th= &Tool16_Z 
   &sy= &ty + &ATC_clipClearY
-  &sx = &tx + &ATC_clipSafe
+  &sx = &tx + &ATC_clipClearX
   If &Dropped = 0 Then GoTo Droptool
  GoTo Changetool
  
@@ -462,7 +462,7 @@ settool14:
   &tz= &Clip17_Z  - %(63)
   &th= &Tool17_Z 
   &sy= &ty + &ATC_clipClearY
-  &sx = &tx + &ATC_clipSafe
+  &sx = &tx + &ATC_clipClearX
   If &Dropped = 0 Then GoTo Droptool
  GoTo Changetool
  
@@ -472,7 +472,7 @@ settool14:
   &tz= &Clip18_Z  - %(63)
   &th= &Tool18_Z 
   &sy= &ty + &ATC_clipClearY
-  &sx = &tx + &ATC_clipSafe
+  &sx = &tx + &ATC_clipClearX
   If &Dropped = 0 Then GoTo Droptool
  GoTo Changetool
  
@@ -482,7 +482,7 @@ settool14:
   &tz= &Clip19_Z  - %(63)
   &th= &Tool19_Z 
   &sy= &ty + &ATC_clipClearY
-  &sx = &tx + &ATC_clipSafe
+  &sx = &tx + &ATC_clipClearX
   If &Dropped = 0 Then GoTo Droptool
  GoTo Changetool
  
@@ -492,7 +492,7 @@ settool14:
   &tz= &Clip20_Z  - %(63)
   &th= &Tool20_Z 
   &sy= &ty + &ATC_clipClearY
-  &sx = &tx + &ATC_clipSafe
+  &sx = &tx + &ATC_clipClearX
   If &Dropped = 0 Then GoTo Droptool
  GoTo Changetool
  
@@ -502,7 +502,7 @@ settool14:
   &tz= &Clip21_Z  - %(63)
   &th= &Tool21_Z 
   &sy= &ty + &ATC_clipClearY
-  &sx = &tx + &ATC_clipSafe
+  &sx = &tx + &ATC_clipClearX
   If &Dropped = 0 Then GoTo Droptool
  GoTo Changetool
  
@@ -512,7 +512,7 @@ settool14:
   &tz= &Clip22_Z  - %(63)
   &th= &Tool22_Z 
   &sy= &ty + &ATC_clipClearY
-  &sx = &tx + &ATC_clipSafe
+  &sx = &tx + &ATC_clipClearX
   If &Dropped = 0 Then GoTo Droptool
  GoTo Changetool
  
@@ -522,7 +522,7 @@ settool14:
   &tz= &Clip23_Z  - %(63)
   &th= &Tool23_Z 
   &sy= &ty + &ATC_clipClearY
-  &sx = &tx + &ATC_clipSafe
+  &sx = &tx + &ATC_clipClearX
   If &Dropped = 0 Then GoTo Droptool
  GoTo Changetool
  
@@ -532,7 +532,7 @@ settool14:
   &tz= &Clip24_Z  - %(63)
   &th= &Tool24_Z 
   &sy= &ty + &ATC_clipClearY
-  &sx = &tx + &ATC_clipSafe
+  &sx = &tx + &ATC_clipClearX
   If &Dropped = 0 Then GoTo Droptool
  GoTo Changetool
 
@@ -542,7 +542,7 @@ settool14:
   &tz= &Clip25_Z  - %(63)
   &th= &Tool25_Z 
   &sy= &ty + &ATC_clipClearY
-  &sx = &tx + &ATC_clipSafe
+  &sx = &tx + &ATC_clipClearX
   If &Dropped = 0 Then GoTo ManualDroptool
  GoTo ManualChangetool
 
@@ -552,7 +552,7 @@ settool14:
   &tz= &Clip26_Z  - %(63)
   &th= &Tool26_Z 
   &sy= &ty + &ATC_clipClearY
-  &sx = &tx + &ATC_clipSafe
+  &sx = &tx + &ATC_clipClearX
   If &Dropped = 0 Then GoTo ManualDroptool
  GoTo ManualChangetool
 
@@ -562,7 +562,7 @@ settool14:
   &tz= &Clip27_Z  - %(63)
   &th= &Tool27_Z 
   &sy= &ty + &ATC_clipClearY
-  &sx = &tx + &ATC_clipSafe
+  &sx = &tx + &ATC_clipClearX
   If &Dropped = 0 Then GoTo ManualDroptool
  GoTo ManualChangetool
 
@@ -572,7 +572,7 @@ settool14:
   &tz= &Clip28_Z  - %(63)
   &th= &Tool28_Z 
   &sy= &ty + &ATC_clipClearY
-  &sx = &tx + &ATC_clipSafe
+  &sx = &tx + &ATC_clipClearX
   If &Dropped = 0 Then GoTo ManualDroptool
  GoTo ManualChangetool
 
@@ -582,7 +582,7 @@ settool14:
   &tz= &Clip29_Z  - %(63)
   &th= &Tool29_Z 
   &sy= &ty + &ATC_clipClearY
-  &sx = &tx + &ATC_clipSafe
+  &sx = &tx + &ATC_clipClearX
   If &Dropped = 0 Then GoTo ManualDroptool
  GoTo ManualChangetool
 
@@ -592,7 +592,7 @@ settool14:
   &tz= &Clip30_Z  - %(63)
   &th= &Tool30_Z 
   &sy= &ty + &ATC_clipClearY
-  &sx = &tx + &ATC_clipSafe
+  &sx = &tx + &ATC_clipClearX
   If &Dropped = 0 Then GoTo ManualDroptool
  GoTo ManualChangetool
 
@@ -602,7 +602,7 @@ settool14:
   &tz= &Clip31_Z  - %(63)
   &th= &Tool31_Z 
   &sy= &ty + &ATC_clipClearY
-  &sx = &tx + &ATC_clipSafe
+  &sx = &tx + &ATC_clipClearX
   If &Dropped = 0 Then GoTo ManualDroptool
  GoTo ManualChangetool
 
@@ -612,7 +612,7 @@ settool14:
   &tz= &Clip32_Z  - %(63)
   &th= &Tool32_Z 
   &sy= &ty + &ATC_clipClearY
-  &sx = &tx + &ATC_clipSafe
+  &sx = &tx + &ATC_clipClearX
   If &Dropped = 0 Then GoTo ManualDroptool
  GoTo ManualChangetool
 
@@ -622,7 +622,7 @@ settool14:
   &tz= &Clip33_Z  - %(63)
   &th= &Tool33_Z 
   &sy= &ty + &ATC_clipClearY
-  &sx = &tx + &ATC_clipSafe
+  &sx = &tx + &ATC_clipClearX
   If &Dropped = 0 Then GoTo ManualDroptool
  GoTo ManualChangetool
 
@@ -632,7 +632,7 @@ settool14:
   &tz= &Clip34_Z  - %(63)
   &th= &Tool34_Z 
   &sy= &ty + &ATC_clipClearY
-  &sx = &tx + &ATC_clipSafe
+  &sx = &tx + &ATC_clipClearX
   If &Dropped = 0 Then GoTo ManualDroptool
  GoTo ManualChangetool
 
@@ -747,27 +747,27 @@ EnterLeft:
 FinishEnterPlan:
 return
 
-RotaryUp:
-	Shell "C:\SbParts\ToolChange.exe 0,&ToolIN"
+'RotaryUp:
+'	Shell "C:\SbParts\ToolChange.exe 0,&ToolIN"
 	'Waiting for rotary to lift
-	PAUSE UNTIL 6, 0
-return
+'	PAUSE UNTIL 6, 0
+'return
 
-RotaryChange:
-	Shell "C:\SbParts\ToolChange.exe 0,&Tool"
+'RotaryChange:
+'	Shell "C:\SbParts\ToolChange.exe 0,&Tool"
 	'Waiting on up
-	PAUSE UNTIL 6, 0
-return
+'	PAUSE UNTIL 6, 0
+'return
 
-RotaryDown:
-	Shell "C:\SbParts\ToolChange.exe 1,1"
+'RotaryDown:
+'	Shell "C:\SbParts\ToolChange.exe 1,1"
 	'Waiting to lower
-	PAUSE UNTIL 6, 1
-return
+'	PAUSE UNTIL 6, 1
+'return
 
 PositionClip: 'Will move X and Y to postion to move into clip.
-	IF &SideMount = 1 Then goto SideM
-	IF &SideMount = 0 Then goto EndM
+	IF &Side = 1 Then goto SideM
+	IF &Side = 0 Then goto EndM
 	SideM:
 		JX, &tx
 		JY, &sy		
