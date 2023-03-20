@@ -8,6 +8,8 @@
 If &modenow = 1 Then GoTo PREVIEWMODE
 
 If &ATC = 5 Then Goto Is5AX
+If &ATC = 4 Then GoTo IsDTATC
+If &ATC = 3 Then GoTo IsDTATC
 If &ATC = 2 Then GoTo IsATC
 If &ATC = 1 Then GoTo IsATC
 If &ATC = 0 Then GoTo IsMTC
@@ -23,6 +25,13 @@ IsATC:
 	If &modenow = 1 Then GoTo CHANGEMODE
 
 	FP,C:\SBPARTS\custom\ATC\ATC.sbp
+	GoTo IsDone
+
+IsDTATC:
+	&modenow = %(22)
+	If &modenow = 1 Then GoTo CHANGEMODE
+
+	FP,C:\SBPARTS\custom\ATC\dtATC.sbp
 	GoTo IsDone
 
 Is5AX: 'This routine is not applicable to 5-axis
