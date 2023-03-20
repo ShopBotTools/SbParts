@@ -58,14 +58,13 @@
    IF &my_units <> %(25) THEN GOSUB CHANGEUNITS
 
    'Set thickness and pull-up distance
-        &zbot = &my_ZzeroThickness * &SCALE
+        &zbot = &my_ZzeroThickness * (1+24.4*%(25))
 	  	&zup = %(28)
-		If &zup < &zbot  Then &zup = &Zbot +  (.125  * &SCALE)
+		If &zup < &zbot  Then &zup = &Zbot +  (.125  * (1+24.4*%(25)))
 		If %(3) < &zup Then MZ, &zup
 
    'Set a value for our first Z move
-      &big_plunge = %(3) - 10
-      IF %(25) = 1 THEN &big_plunge = %(3) - 254
+      &big_plunge = %(3) - 36 * (1+24.4*%(25))
 
    'Check to see if we should move to a zeroing location
       IF &my_ZzeroStartX <> no THEN GOSUB STARTMOVE
@@ -73,10 +72,8 @@
    'Save current speeds and set zeroing speed
       &start_Zmove_Speed = %(73)
       &start_XYmove_Speed = %(71)
-      &new_Zmove_Speed = .25
-      &new_XYmove_Speed = .25
-      IF %(25) = 1 THEN &new_Zmove_Speed = 6
-      IF %(25) = 1 THEN &new_XYmove_Speed = 6
+      &new_Zmove_Speed = .25 * (1+24.4*%(25))
+      &new_XYmove_Speed = .25 * (1+24.4*%(25))
 
 
 '----------------------------------------------------------------Zeroing PROGRAM 
