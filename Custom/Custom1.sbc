@@ -7,6 +7,8 @@
 If &modenow = 1 Then GoTo PREVIEWMODE
 
 If &ATC = 5 Then Goto Is5AX
+If &ATC = 4 Then GoTo IsATC
+If &ATC = 3 Then GoTo IsATC
 If &ATC = 2 Then GoTo IsATC
 If &ATC = 1 Then GoTo IsATC
 If &ATC = 0 Then GoTo IsMTC
