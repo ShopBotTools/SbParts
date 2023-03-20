@@ -8,8 +8,8 @@
 If &modenow = 1 Then GoTo PREVIEWMODE
 
 If &ATC = 5 Then Goto IsMTC
-If &ATC = 4 Then GoTo IsATC
-If &ATC = 3 Then GoTo IsATC
+If &ATC = 4 Then GoTo IsDTATC
+If &ATC = 3 Then GoTo IsDTATC
 If &ATC = 2 Then GoTo IsATC
 If &ATC = 1 Then GoTo IsATC
 If &ATC = 0 Then GoTo IsMTC
@@ -18,6 +18,10 @@ END
 
 IsATC:
     FP, c:\SbParts\Custom\ATC\ATC_Zzero.SBP
+    END
+    
+IsDTATC:
+    FP, c:\SbParts\Custom\ATC\dtATC_Zzero.SBP
     END
 
 MTC:
