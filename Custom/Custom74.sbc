@@ -7,6 +7,8 @@
 If &modenow = 1 Then GoTo PREVIEWMODE
 
 If &ATC = 5 Then Goto IsMTC
+If &ATC = 4 Then GoTo IsDTATC
+If &ATC = 3 Then GoTo IsDTATC
 If &ATC = 2 Then GoTo IsATC
 If &ATC = 1 Then GoTo IsATC
 If &ATC = 0 Then GoTo IsMTC
@@ -17,6 +19,10 @@ IsATC:
     FP, c:\SbParts\Custom\ATC\ATC_calibrate.sbp
     END
 
+IsDTATC:
+    FP, c:\SbParts\Custom\ATC\dtATC_calibrate.sbp
+    END
+    
 MTC:
     'This routine is not applicable to Manual Tool Change or 5-axis (Press any key to quit)
 	Pause
